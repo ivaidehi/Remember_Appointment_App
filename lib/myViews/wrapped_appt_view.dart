@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../gets/get_date_time.dart';
 import '../gets/get_patientnm_pid.dart';
-import '../myWidgets/line_widget.dart';
 import '../styles/app_styles.dart';
-
+import '../myWidgets/line_widget.dart';
 
 class WrappedApptView extends StatelessWidget {
   final Map<String,dynamic> wrappedAppt;
@@ -13,10 +12,7 @@ class WrappedApptView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: AppStyles.searchBoxStyle,
       // Patient's name & pid
       child: Padding(
         padding: const EdgeInsets.all(15),

@@ -18,6 +18,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
   var yearInput = TextEditingController();
   var scheduleTreatmentInput = TextEditingController();
   var noteInput = TextEditingController();
+
   String? selectedMonth;
   var monthList = [
     "January",
@@ -69,10 +70,10 @@ class _SetApptScreenState extends State<SetApptScreen> {
     "31"
   ];
 
-  String? hours;
+  String? selectedHours;
   var hrsList = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
-  String? mins;
+  String? selectedMins;
   var minsList = [
     "1",
     "2",
@@ -136,7 +137,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
     "60"
   ];
 
-  String? ampm;
+  String? selectedAMPM;
   var ampmList = ["AM", "PM"];
 
   @override
@@ -168,12 +169,14 @@ class _SetApptScreenState extends State<SetApptScreen> {
               InputFieldWidget(
                 defaultHintText: 'Enter Name',
                 controller: nameInput,
+                requiredInput: 'Name', hideText: false,
               ),
               const SizedBox(height: 20),
               const LabelsWidget(label: 'Contact'),
               InputFieldWidget(
                 defaultHintText: 'Enter Contact No.',
                 controller: contactInput,
+                requiredInput: 'Contact No.', hideText: false,
               ),
               const SizedBox(height: 25),
               const LabelsWidget(label: 'Appointment Date & Time'),
@@ -181,6 +184,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
               InputFieldWidget(
                 defaultHintText: 'Enter Year',
                 controller: yearInput,
+                requiredInput: 'year', hideText: false,
               ),
               const SizedBox(height: 10),
               DropdownWidget(
@@ -212,10 +216,10 @@ class _SetApptScreenState extends State<SetApptScreen> {
                     width: 100,
                     child: DropdownWidget(
                       itemList: hrsList,
-                      selectedItem: hours,
+                      selectedItem: selectedHours,
                       onChanged: (String? newValue) {
                         setState(() {
-                          hours = newValue;
+                          selectedHours = newValue;
                         });
                       },
                       select: 'Hrs.',
@@ -226,10 +230,10 @@ class _SetApptScreenState extends State<SetApptScreen> {
                     width: 100,
                     child: DropdownWidget(
                       itemList: minsList,
-                      selectedItem: mins,
+                      selectedItem: selectedMins,
                       onChanged: (String? newValue) {
                         setState(() {
-                          mins = newValue;
+                          selectedMins = newValue;
                         });
                       },
                       select: 'Min.',
@@ -240,10 +244,10 @@ class _SetApptScreenState extends State<SetApptScreen> {
                     width: 100,
                     child: DropdownWidget(
                       itemList: ampmList,
-                      selectedItem: ampm,
+                      selectedItem: selectedAMPM,
                       onChanged: (String? newValue) {
                         setState(() {
-                          ampm = newValue;
+                          selectedAMPM = newValue;
                         });
                       },
                       select: 'AM/PM',
@@ -255,13 +259,15 @@ class _SetApptScreenState extends State<SetApptScreen> {
               const LabelsWidget(label: 'Schedule Treatment'),
               InputFieldWidget(
                 defaultHintText: 'Type here',
-                controller: contactInput,
+                controller: scheduleTreatmentInput,
+                requiredInput: 'Text', hideText: false,
               ),
               const SizedBox(height: 20),
               const LabelsWidget(label: 'Note'),
               InputFieldWidget(
                 defaultHintText: 'Type here',
-                controller: contactInput,
+                controller: noteInput,
+                requiredInput: 'Text', hideText: false,
               ),
               const SizedBox(height: 25),
               ElevatedButton(
@@ -269,17 +275,22 @@ class _SetApptScreenState extends State<SetApptScreen> {
                   backgroundColor: WidgetStateProperty.all<Color>(Colors.blue),
                 ),
                 onPressed: () {
-                  var getsearchinputOntap = nameInput.text.toString();
-                  var getcontactinputOntap = contactInput.text.toString();
-                  print("Input text of Name field: $getsearchinputOntap");
-                  print("Input text of Contact field: $getcontactinputOntap");
+                  var getSearchinputOntap = nameInput.text.toString();
+                  var getContactinputOntap = contactInput.text.toString();
+                  var getYearinputOntap = yearInput.text.toString();
+                  var getTreatmentinputOntap = scheduleTreatmentInput.text.toString();
+                  var getNoteinputOntap = noteInput.text.toString();
+
+                  print("Input text of Name field: $getSearchinputOntap");
+                  print("Input text of Contact field: $getContactinputOntap");
+                  print("Selected Year: $getYearinputOntap");
                   print("Selected Month: $selectedMonth");
                   print("Selected Date: $selectedDate");
-                  print("Selected hour: $hours");
-                  print("Selected min: $mins");
-                  print("Selected ampm: $ampm");
-                  print("Selected schedule Treatment: $selectedDate");
-                  print("Selected note: $selectedDate");
+                  print("Selected hours: $selectedHours");
+                  print("Selected min: $selectedMins");
+                  print("Selected ampm: $selectedAMPM");
+                  print("Selected schedule Treatment: $getTreatmentinputOntap");
+                  print("Selected note: $getNoteinputOntap");
                 },
                 child: Text(
                   'Set Appointment',

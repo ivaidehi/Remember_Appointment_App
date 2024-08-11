@@ -11,6 +11,6 @@ class GetDoctorfnm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text("Dr. $doctor_fname",
-        style: AppStyles.headLineStyle1.copyWith(color: AppStyles.secondary));
+        style: AppStyles.headLineStyle1.copyWith(color: AppStyles.primary));
   }
 }

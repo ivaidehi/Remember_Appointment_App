@@ -11,7 +11,7 @@ class LabelsWidget extends StatelessWidget {
     return Column(
       children: [
         Text(
-          "$label : ",
+          "$label ",
           style: AppStyles.headLineStyle3.copyWith(color: AppStyles.primary),
         ),
         const SizedBox(

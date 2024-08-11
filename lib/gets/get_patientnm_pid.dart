@@ -17,10 +17,10 @@ class GetPatientnmPid extends StatelessWidget {
       children: [
         Text(patient_name,
             style: AppStyles.headLineStyle3_0
-                .copyWith(color: AppStyles.secondary)),
+                .copyWith(color: AppStyles.primary)),
         Text("PID: $pid",
             style: AppStyles.headLineStyle3_0
-                .copyWith(color: AppStyles.secondary)),
+                .copyWith(color: AppStyles.primary)),
       ],
     );
   }
