@@ -53,9 +53,9 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
               builder: (context) {
                 return const CupertinoPageScaffold(child: SetApptScreen());
               },
-              // routes: {
-              //   "wrapped_appt_screen": (context) => const WrappedApptScreen(),
-              // },
+              routes: {
+                "home_screen": (context) => const HomeScreen(),
+              },
             );
           case 2:
             return CupertinoTabView(
@@ -63,7 +63,7 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
                 return const CupertinoPageScaffold(child: ProfileScreen());
               },
               // routes: {
-              //   "wrapped_appt_screen": (context) => const WrappedApptScreen(),
+              //   "login_screen": (context) => const LoginScreen(),
               // },
             );
         }

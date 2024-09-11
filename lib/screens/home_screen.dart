@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: AppStyles.bgColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(33),
+          padding: const EdgeInsets.all(20),
           child: ListView(
             children: [
               // Doc. Name, Profile Pic. & Search bar
@@ -32,7 +32,7 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             Text("Hello,", style: AppStyles.headLineStyle2),
                             const SizedBox(height: 5),
-                            const GetDoctorfnm(doctor_fname: "Nolan"),
+                            const GetDoctorfnm(),
                           ],
                         ),
                       ),
@@ -58,15 +58,15 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
                   // Search bar
                   const SearchView(),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
               // Recently Opened Appointments
               // title - Recently Opened Appointments & view all
-              const SubHeadingWidget(subHeading: "Recent Appointments"),
+              const SubHeadingWidget(subHeading: "  Recent Appointments"),
               const SizedBox(height: 15),
               // Wrapped Appointment
               ListView.builder(

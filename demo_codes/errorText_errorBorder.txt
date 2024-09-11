@@ -1,0 +1,95 @@
+The issue is that you are not calling setState when the form is validated. You need to call setState to update the UI when the error message changes.
+
+Here's how you can do it:
+=============================================================================================================
+dart
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+SizedBox(
+  width: 200,
+  child: ElevatedButton(
+    style: ButtonStyle(
+      backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+    ),
+    onPressed: () {
+      if (_formkey.currentState!.validate()) {
+        setState(() {
+          useremail = useremailcontroller.text;
+          password = passwordController.text;
+        });
+        login();
+      } else {
+        setState(() {}); // Add this line
+      }
+    },
+    child: Text(
+      'Login',
+      style: AppStyles.headLineStyle3.copyWith(
+        color: Colors.white,
+      ),
+    ),
+  ),
+),
+By calling setState when the form is not valid, you are telling Flutter to rebuild the UI, which will display the error messages.
+
+Also, make sure that you are not clearing the error messages when the form is validated. You should only clear the error messages when the user starts typing again.
+
+Here's how you can do it:
+=============================================================================================================================
+dart
+
+Verify
+
+Open In Editor
+Edit
+Copy code
+InputFieldWidget(
+  defaultHintText: 'Enter Email ID',
+  controller: useremailcontroller,
+  showWarning: _emailWarning,
+  requiredInput: 'Email id',
+  hideText: false,
+  suffixIcon: Icon(
+    Icons.email_rounded,
+    color: AppStyles.secondary,
+  ),
+  onChanged: (value) {
+    if (_emailWarning != null) {
+      setState(() {
+        _emailWarning = null;
+      });
+    }
+  },
+),
+InputFieldWidget(
+  defaultHintText: 'Enter Password',
+  controller: passwordController,
+  showWarning: _passwordWarning,
+  requiredInput: 'Password',
+  hideText: !_visibility,
+  suffixIcon: IconButton(
+    icon: Icon(
+      color: AppStyles.secondary,
+      _visibility ? Icons.visibility : Icons.visibility_off,
+    ),
+    onPressed: () {
+      setState(() {
+        _visibility = !_visibility;
+      });
+    },
+  ),
+  onChanged: (value) {
+    if (_passwordWarning != null) {
+      setState(() {
+        _passwordWarning = null;
+      });
+    }
+  },
+),
+By adding the onChanged callback to the InputFieldWidget, you are clearing the error messages when the user starts typing again.
+
+      // margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),

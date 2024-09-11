@@ -53,7 +53,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                 // Current Patient's Appointment Details
                 Container(
                   padding: const EdgeInsets.all(15),
-                  decoration: AppStyles.searchBoxStyle,
+                  decoration: AppStyles.inputBoxShadowStyle,
                   child: const CurrentPatientApptDetails(
                       contact: "816344842",
                       schedule_treatment:
@@ -71,7 +71,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.all(15),
-                  decoration: AppStyles.searchBoxStyle,
+                  decoration: AppStyles.inputBoxShadowStyle,
                   child: const PreviousPatientApptDetails(
                       previous_appt_date: "01-07-2024",
                       schedule_treatment:
@@ -84,7 +84,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.all(15),
-                  decoration: AppStyles.searchBoxStyle,
+                  decoration: AppStyles.inputBoxShadowStyle,
                   child: const PreviousPatientApptDetails(
                       previous_appt_date: "22-06-2024",
                       schedule_treatment:

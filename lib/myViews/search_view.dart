@@ -26,10 +26,11 @@ class _SearchViewState extends State<SearchView> {
         ),
         const SizedBox(width: 5),
         Container(
-          padding: const EdgeInsets.all(2), // Adjust padding around the icon button
+          margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+          height: 50,
           decoration: BoxDecoration(
             color: Colors.white, // Background color
-            borderRadius: BorderRadius.circular(4.0), // Rounded corners
+            borderRadius: BorderRadius.circular(7), // Rounded corners
             boxShadow: [
               BoxShadow(
                 color: Colors.grey.withOpacity(0.3),
@@ -48,7 +49,7 @@ class _SearchViewState extends State<SearchView> {
               Icons.search,
               color: AppStyles.secondary,
             ),
-            iconSize: 28, // Size of the icon
+            iconSize: 30, // Size of the icon
           ),
         ),
       ],

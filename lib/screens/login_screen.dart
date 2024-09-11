@@ -19,6 +19,11 @@ class _LoginScreenState extends State<LoginScreen> {
   String useremail = "", password = "";
   final _formkey = GlobalKey<FormState>();
 
+  var userNotFound = 'user-not-found';
+  var wrongPassword = 'wrong-password';
+
+  String? _emailWarning, _passwordWarning;
+
   Future<void> login() async {
     try {
       await FirebaseAuth.instance
@@ -28,14 +33,14 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       Navigator.pushNamed(context, 'bottom_navbar');
     } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User dosen't exists.")),
-        );
-      } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Invalid password. Try again")),
-        );
+      if (e.code == userNotFound) {
+        setState(() {
+          _emailWarning = 'Invalid Email id';
+        });
+      } else if (e.code == wrongPassword) {
+        setState(() {
+          _passwordWarning = 'Invalid Password';
+        });
       }
     }
   }
@@ -57,8 +62,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                     "Welcome Back !",
-                    style: AppStyles.headLineStyle2
-                        .copyWith(color: AppStyles.primary, fontWeight: FontWeight.bold),
+                    style: AppStyles.headLineStyle2.copyWith(
+                        color: AppStyles.primary, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(
                     height: 30,
@@ -66,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   InputFieldWidget(
                     defaultHintText: 'Enter Email ID',
                     controller: useremailcontroller,
+                    showWarning: _emailWarning,
                     requiredInput: 'Email id',
                     hideText: false,
                     suffixIcon: Icon(
@@ -78,7 +84,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   InputFieldWidget(
                     defaultHintText: 'Enter Password',
-                    controller: passwordController, requiredInput: 'Password',
+                    controller: passwordController,
+                    showWarning: _passwordWarning,
+                    requiredInput: 'Password',
                     hideText:
                         !_visibility, // [Not _isPasswordVisible=false]--> (i.e password is visible / (TRUE) )
                     // Now the at last bool
@@ -102,6 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(
                     width: 200,
+                    height: 55,
                     child: ElevatedButton(
                       style: ButtonStyle(
                         backgroundColor:
@@ -113,8 +122,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             useremail = useremailcontroller.text;
                             password = passwordController.text;
                           });
+                          login();
+                        } else {
+                          setState(() {}); // Add this line
                         }
-                        login();
                       },
                       child: Text(
                         'Login',
@@ -147,7 +158,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10,),
+                  const SizedBox(
+                    height: 10,
+                  ),
                   Column(
                     children: [
                       Text(
@@ -156,12 +169,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: AppStyles.primary,
                         ),
                       ),
-                      const SizedBox(height: 20,),
+                      const SizedBox(
+                        height: 20,
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           GestureDetector(
-                            onTap: (){},
+                            onTap: () {},
                             child: Image.asset(
                               'assets/images/google_logo.png',
                               width: 35,
@@ -169,7 +184,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: (){},
+                            onTap: () {},
                             child: Image.asset(
                               'assets/images/fb.png',
                               width: 35,
@@ -177,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           GestureDetector(
-                            onTap: (){},
+                            onTap: () {},
                             child: Image.asset(
                               'assets/images/apple_logo.png',
                               width: 40,
@@ -187,7 +202,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
 
-                      const SizedBox(height: 20,),
+                      const SizedBox(
+                        height: 20,
+                      ),
                       // Already have an account-->  login
                       Container(
                         color: AppStyles.bgColor,

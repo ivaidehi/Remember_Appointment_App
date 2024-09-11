@@ -1,0 +1,200 @@
+String? selectedMonth;
+  var monthList = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ];
+
+  String? selectedDate;
+  var dateList = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31"
+  ];
+
+  String? selectedHours;
+  var hrsList = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+
+  String? selectedMins;
+  var minsList = [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "41",
+    "42",
+    "43",
+    "44",
+    "45",
+    "46",
+    "47",
+    "48",
+    "49",
+    "50",
+    "51",
+    "52",
+    "53",
+    "54",
+    "55",
+    "56",
+    "57",
+    "58",
+    "59",
+    "60"
+  ];
+
+  // InputFieldWidget(
+                //   defaultHintText: 'Enter Year',
+                //   controller: yearInput,
+                //   requiredInput: 'year',
+                //   hideText: false,
+                // ),
+                // const SizedBox(height: 10),
+                // DropdownWidget(
+                //   itemList: monthList,
+                //   selectedItem: selectedMonth,
+                //   onChanged: (String? newValue) {
+                //     setState(() {
+                //       selectedMonth = newValue;
+                //     });
+                //   },
+                //   select: 'Select Month',
+                // ),
+                // const SizedBox(height: 10),
+                // DropdownWidget(
+                //   itemList: dateList,
+                //   selectedItem: selectedDate,
+                //   onChanged: (String? newValue) {
+                //     setState(() {
+                //       selectedDate = newValue;
+                //     });
+                //   },
+                //   select: 'Select Date',
+                // ),
+                // const SizedBox(height: 10),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     SizedBox(
+                //       width: 100,
+                //       child: DropdownWidget(
+                //         itemList: hrsList,
+                //         selectedItem: selectedHours,
+                //         onChanged: (String? newValue) {
+                //           setState(() {
+                //             selectedHours = newValue;
+                //           });
+                //         },
+                //         select: 'Hrs.',
+                //       ),
+                //     ),
+                //     const SizedBox(width: 20),
+                //     SizedBox(
+                //       width: 100,
+                //       child: DropdownWidget(
+                //         itemList: minsList,
+                //         selectedItem: selectedMins,
+                //         onChanged: (String? newValue) {
+                //           setState(() {
+                //             selectedMins = newValue;
+                //           });
+                //         },
+                //         select: 'Min.',
+                //       ),
+                //     ),
+                //     const SizedBox(width: 20),
+                //     Expanded(
+                //       // width: 100,
+                //       child: DropdownWidget(
+                //         itemList: ampmList,
+                //         selectedItem: selectedAMPM,
+                //         onChanged: (String? newValue) {
+                //           setState(() {
+                //             selectedAMPM = newValue;
+                //           });
+                //         },
+                //         select: 'AM/PM',
+                //       ),
+                //     ),
+                //   ],
+                // ),
+
+                                    // print("Selected Year: $getYearinputOntap");
+                                   // print("Selected Month: $selectedMonth");
+                                   // print("Selected Date: $selectedDate");
+                                   // print("Selected hours: $selectedHours");
+                                   // print("Selected min: $selectedMins");
+                                   // print("Selected ampm: $selectedAMPM");

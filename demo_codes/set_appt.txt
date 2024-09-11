@@ -1,3 +1,6 @@
+
+// working version set_appt_screen.dart
+
 import 'package:appointment_app/data/timeslots_list.dart';
 import 'package:appointment_app/gets/get_date.dart';
 import 'package:appointment_app/gets/get_time.dart';
@@ -101,7 +104,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Selected time slot is already Booked.'),
+                'Selected time slot is already booked, please choose another one.'),
           ),
         );
         return;
@@ -158,7 +161,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
               if (blockedTimeSlots[selectedTime] == true) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('This time slot is already booked.'),
+                    content: Text('This time slot is already blocked.'),
                   ),
                 );
               } else {

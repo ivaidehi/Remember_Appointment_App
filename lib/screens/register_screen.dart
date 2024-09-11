@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import 'package:appointment_app/myWidgets/input_field_widget.dart';
 import 'package:appointment_app/myWidgets/line_widget.dart';
 import 'package:appointment_app/styles/app_styles.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -17,45 +20,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? selectedRole;
   var roleList = ['As a Doctor', 'As a Receptionist'];
 
-  // var uncontroller = TextEditingController();
-  var emailcontroller = TextEditingController();
+  var fnameController = TextEditingController();
+  var lnameController = TextEditingController();
+  var emailController = TextEditingController();
   var setPasswordController = TextEditingController();
   // var phonenoController = TextEditingController();
 
-  String username = "", email = "", setPassword = "", phoneNo = "";
+  String fname = "",lname = "", email = "", setPassword = "", phoneNo = "";
   final _formkey = GlobalKey<FormState>();
 
   Future<void> registration() async {
     if (selectedRole != null) {
+      UserCredential? userCredential;
       try {
-        UserCredential userCredential =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: email,
           password: setPassword,
-        );
+        ).then((value){
+          FirebaseFirestore.instance.collection("Users").doc(emailController.text.toString()).set({
+            'First Name':fnameController.text.toString(),
+            'Last Name':lnameController.text.toString(),
+            'Email':emailController.text.toString(),
+            'Role':selectedRole.toString(),
+          });
+          return null;
+          // return null;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registered Successfully.')),
         );
         Navigator.pushNamed(context, 'login_screen');
       } on FirebaseAuthException catch (e) {
-        String message;
         if (e.code == 'email-already-in-use') {
-          message = 'username/email already exists';
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Email already exists. Try again')),
+          );
+        } else if (e.code == 'wrong-password') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid password. Try again')),
+          );
         } else {
-          message = 'An error occurred. Please try again.';
+          log(e.code.toString());
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('An unknown error occurred. Please try again.')),
-        );
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter valid password.')),
+        const SnackBar(content: Text('Unknown Error Occurred')),
       );
     }
   }
@@ -71,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(35),
-            margin: const EdgeInsets.symmetric(vertical: 130),
+            margin: const EdgeInsets.symmetric(vertical: 70),
             child: Form(
               key: _formkey,
               child: Column(
@@ -87,11 +97,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
 
                   // User Input fields
-                  // InputFieldWidget(defaultHintText: 'Enter Username', controller: uncontroller, requiredInput: 'Name',hideText: false,),
-                  // const SizedBox(height: 20,),
+                  InputFieldWidget(defaultHintText: 'Enter First Name', controller: fnameController, requiredInput: 'Name',hideText: false,),
+                  const SizedBox(height: 20,),
+                  InputFieldWidget(defaultHintText: 'Enter Last Name', controller: lnameController, requiredInput: 'Name',hideText: false,),
+                  const SizedBox(height: 20,),
                   InputFieldWidget(
                     defaultHintText: 'Enter Email ID',
-                    controller: emailcontroller,
+                    controller: emailController,
                     requiredInput: 'Email id',
                     suffixIcon: Icon(
                       Icons.email_rounded,
@@ -150,8 +162,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () {
                         if (_formkey.currentState!.validate()) {
                           setState(() {
-                            // username = uncontroller.text;
-                            email = emailcontroller.text;
+                            fname = fnameController.text;
+                            lname = lnameController.text;
+                            email = emailController.text;
                             setPassword = setPasswordController.text;
                             // phoneNo = phonenoController.text;
                           });
