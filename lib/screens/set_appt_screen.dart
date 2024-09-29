@@ -194,6 +194,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
     return Scaffold(
       backgroundColor: AppStyles.bgColor,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
