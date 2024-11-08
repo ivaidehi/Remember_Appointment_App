@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:appointment_app/gets/get_docnm.dart';
 import 'package:flutter/material.dart';
 import '../data/wrapped_patient_appt_json.dart';
@@ -6,9 +8,26 @@ import '../myViews/wrapped_appt_view.dart';
 import '../myWidgets/sub_heading_widget.dart';
 import '../styles/app_styles.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  deletedWrappedAppt (int i){
+    setState(() {
+      try{
+        wrappedApptList.removeAt(i);
+        log('Appointment $i delete successfully');
+      }
+      catch(e){
+        log('Not Delete. Error Occured.');
+      }
+
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +100,10 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pushNamed(context, "wrapped_appt_screen",
                           arguments: {"index": index});
                     },
-                    child: WrappedApptView(wrappedAppt: takeSingleWrappedAppt),
+                    child: WrappedApptView(
+                      wrappedAppt: takeSingleWrappedAppt,
+                      onDelete: () => deletedWrappedAppt(index),
+                    ),
                   );
                 },
               ),

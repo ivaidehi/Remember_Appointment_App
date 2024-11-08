@@ -4,15 +4,15 @@ import '../styles/app_styles.dart';
 import '../myWidgets/line_widget.dart';
 
 class WrappedApptView extends StatefulWidget {
-  final Map<String,dynamic> wrappedAppt;
-  const WrappedApptView({super.key, required this.wrappedAppt});
+  final Map<String, dynamic> wrappedAppt;
+  VoidCallback? onDelete;
+  WrappedApptView({super.key, required this.wrappedAppt, this.onDelete});
 
   @override
   State<WrappedApptView> createState() => _WrappedApptViewState();
 }
 
 class _WrappedApptViewState extends State<WrappedApptView> {
-
   late DateTime selectedDate;
 
   @override
@@ -26,7 +26,20 @@ class _WrappedApptViewState extends State<WrappedApptView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GetPatientnmPid(patient_name: widget.wrappedAppt["pname"], pid: widget.wrappedAppt["pid"]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                GetPatientnmPid(patient_name: widget.wrappedAppt["pname"]),
+                GestureDetector(
+                    onTap: widget.onDelete,
+                    child: Text(
+                      "Delete",
+                      style: TextStyle(
+                          color: AppStyles.primary,
+                          decoration: TextDecoration.underline),
+                    ))
+              ],
+            ),
             const LineWidget(),
             // Date & Time
             Column(
@@ -37,7 +50,10 @@ class _WrappedApptViewState extends State<WrappedApptView> {
                   children: [
                     Text("Date", style: AppStyles.headLineStyle3),
                     const SizedBox(height: 5),
-                    Text("Time", style: AppStyles.headLineStyle3,),
+                    Text(
+                      "Time",
+                      style: AppStyles.headLineStyle3,
+                    ),
                   ],
                 ),
                 // GetApptDateTime(onDateSelected: (date){

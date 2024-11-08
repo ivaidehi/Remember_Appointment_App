@@ -1,23 +1,53 @@
-import 'package:appointment_app/screens/home_screen.dart';
-import 'package:appointment_app/screens/profile_screen.dart';
-import 'package:appointment_app/screens/set_appt_screen.dart';
-import 'package:appointment_app/screens/wrapped_appt_screen.dart';
-import 'package:appointment_app/styles/app_styles.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/cupertino.dart';
+import '../screens/home_screen.dart';
+import '../screens/profile_screen.dart';
+import '../screens/set_appt_screen.dart';
+import '../screens/wrapped_appt_screen.dart';
+import '../styles/app_styles.dart';
 
 class MyBottomNavBar extends StatefulWidget {
   const MyBottomNavBar({super.key});
+
+  static _MyBottomNavBarState? of(BuildContext context) {
+    return context.findAncestorStateOfType<_MyBottomNavBarState>();
+  }
 
   @override
   State<MyBottomNavBar> createState() => _MyBottomNavBarState();
 }
 
 class _MyBottomNavBarState extends State<MyBottomNavBar> {
+  int _currentIndex = 0;
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+  ];
+
+  final List<Widget> _screens = const [
+    HomeScreen(),
+    SetApptScreen(),
+    ProfileScreen(),
+  ];
+
+  void onTabTapped(int index) {
+    if (_currentIndex == index) {
+      // Pop to the root of the current tab if the same tab is tapped again
+      _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+    } else {
+      setState(() {
+        _currentIndex = index;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoTabScaffold(
       tabBar: CupertinoTabBar(
+        currentIndex: _currentIndex,
+        onTap: onTabTapped,
         activeColor: AppStyles.secondary,
         backgroundColor: CupertinoColors.white,
         iconSize: 36,
@@ -38,36 +68,16 @@ class _MyBottomNavBarState extends State<MyBottomNavBar> {
         ],
       ),
       tabBuilder: (context, index) {
-        switch (index) {
-          case 0:
-            return CupertinoTabView(
-              builder: (context) {
-                return const CupertinoPageScaffold(child: HomeScreen());
-              },
-              routes: {
-                "wrapped_appt_screen": (context) => const WrappedApptScreen(),
-              },
-            );
-          case 1:
-            return CupertinoTabView(
-              builder: (context) {
-                return const CupertinoPageScaffold(child: SetApptScreen());
-              },
-              routes: {
-                "home_screen": (context) => const HomeScreen(),
-              },
-            );
-          case 2:
-            return CupertinoTabView(
-              builder: (context) {
-                return const CupertinoPageScaffold(child: ProfileScreen());
-              },
-              // routes: {
-              //   "login_screen": (context) => const LoginScreen(),
-              // },
-            );
-        }
-        return Container();
+        return CupertinoTabView(
+          navigatorKey: _navigatorKeys[index],
+          builder: (context) {
+            return CupertinoPageScaffold(child: _screens[index]);
+          },
+          routes: {
+            "home_screen": (context) => const HomeScreen(),
+            "wrapped_appt_screen": (context) => const WrappedApptScreen(),
+          },
+        );
       },
     );
   }

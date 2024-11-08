@@ -36,12 +36,19 @@ class ProfileScreen extends StatelessWidget {
               );
             }
           },
-          child: Text(
-            'Log Out',
-            style: AppStyles.headLineStyle2_0.copyWith(
-                color: AppStyles.primary,
-                fontWeight: FontWeight.bold
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Text('Recycle Bin', style: AppStyles.headLineStyle3.copyWith(color: AppStyles.primary),),
+              Text(
+                'Log Out',
+                style: AppStyles.headLineStyle2_0.copyWith(
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold
+                ),
+              ),
+
+            ],
           ),
         ),
       ),

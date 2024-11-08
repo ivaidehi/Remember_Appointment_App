@@ -1,3 +1,4 @@
+import 'package:appointment_app/screens/addnew_appt_screen.dart';
 import 'package:appointment_app/screens/home_screen.dart';
 import 'package:appointment_app/screens/login_screen.dart';
 import 'package:appointment_app/screens/set_appt_screen.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         "home_screen": (context) => const HomeScreen(),
         "wrapped_appt_screen": (context) => const WrappedApptScreen(),
         "set_appt_screen": (context) => const SetApptScreen(),
+        "addnew_appt_screen": (context) => const AddnewApptScreen(),
         "login_screen": (context) => const LoginScreen(),
         "register_screen": (context) => const RegisterScreen(),
       },

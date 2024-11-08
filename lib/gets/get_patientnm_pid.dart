@@ -6,9 +6,9 @@ import '../styles/app_styles.dart';
 class GetPatientnmPid extends StatelessWidget {
 
   final String patient_name;
-  final int pid;
+  // final int pid;
 
-  const GetPatientnmPid({super.key,required this.patient_name, required this.pid});
+  const GetPatientnmPid({super.key,required this.patient_name});
 
   @override
   Widget build(BuildContext context) {
@@ -18,9 +18,9 @@ class GetPatientnmPid extends StatelessWidget {
         Text(patient_name,
             style: AppStyles.headLineStyle3_0
                 .copyWith(color: AppStyles.primary)),
-        Text("PID: $pid",
-            style: AppStyles.headLineStyle3_0
-                .copyWith(color: AppStyles.primary)),
+        // Text("PID: $pid",
+        //     style: AppStyles.headLineStyle3_0
+        //         .copyWith(color: AppStyles.primary)),
       ],
     );
   }

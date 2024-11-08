@@ -10,8 +10,10 @@ class SubHeadingWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(subHeading,
-            style: AppStyles.headLineStyle3),
+        Expanded(
+          child: Text(subHeading,
+              style: AppStyles.headLineStyle4),
+        ),
         Transform.rotate(
             angle: 1.5,
             child: Icon(
