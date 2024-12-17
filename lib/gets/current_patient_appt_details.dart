@@ -1,14 +1,18 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import '../myWidgets/line_widget.dart';
 import '../styles/app_styles.dart';
 
 class CurrentPatientApptDetails extends StatelessWidget {
-
   final String contact;
-  final String schedule_treatment;
+  final String scheduleTreatment;
   final String note;
 
-  const CurrentPatientApptDetails({super.key, required this.contact, required this.schedule_treatment, required this.note});
+  const CurrentPatientApptDetails({
+    super.key,
+    required this.contact,
+    required this.scheduleTreatment,
+    required this.note,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,55 +24,61 @@ class CurrentPatientApptDetails extends StatelessWidget {
             children: [
               TextSpan(
                 text: 'Contact : ',
-                style: AppStyles.headLineStyle2_0.copyWith(
-                    fontWeight: FontWeight.bold, color: AppStyles.secondary
+                style: AppStyles.headLineStyle3_0.copyWith(
+                  // fontWeight: FontWeight.bold,
+                  color: AppStyles.secondary,
                 ),
               ),
               TextSpan(
                 text: contact,
-                style: AppStyles.headLineStyle2_0.copyWith(color: AppStyles.primary),
+                style: AppStyles.headLineStyle3.copyWith(
+                  color: AppStyles.primary,
+                ),
               ),
             ],
           ),
-          textAlign: TextAlign.left,
         ),
-        const SizedBox(height: 15, width: 400,),
+        const SizedBox(height: 15),
         const LineWidget(),
         Text.rich(
           TextSpan(
             children: [
               TextSpan(
-                text: 'Scheduled Treatment : ',
-                style: AppStyles.headLineStyle2_0.copyWith(
-                    fontWeight: FontWeight.bold, color: AppStyles.secondary
+                text: 'Scheduled Treatment: ',
+                style: AppStyles.headLineStyle3_0.copyWith(
+                  // fontWeight: FontWeight.bold,
+                  color: AppStyles.secondary,
                 ),
               ),
               TextSpan(
-                text: schedule_treatment,
-                style: AppStyles.headLineStyle2_0.copyWith(color: AppStyles.primary),
+                text: scheduleTreatment,
+                style: AppStyles.headLineStyle3.copyWith(
+                  color: AppStyles.primary,
+                ),
               ),
             ],
           ),
-          textAlign: TextAlign.left,
         ),
-        const SizedBox(height: 15, width: 400,),
+        const SizedBox(height: 15),
         const LineWidget(),
         Text.rich(
           TextSpan(
             children: [
               TextSpan(
-                text: 'Note : ',
-                style: AppStyles.headLineStyle2_0.copyWith(
-                    fontWeight: FontWeight.bold, color: AppStyles.secondary
+                text: 'Note: ',
+                style: AppStyles.headLineStyle3_0.copyWith(
+                  // fontWeight: FontWeight.bold,
+                  color: AppStyles.secondary,
                 ),
               ),
               TextSpan(
                 text: note,
-                style: AppStyles.headLineStyle2_0.copyWith(color: AppStyles.primary),
+                style: AppStyles.headLineStyle3.copyWith(
+                  color: AppStyles.primary,
+                ),
               ),
             ],
           ),
-          textAlign: TextAlign.left,
         ),
       ],
     );

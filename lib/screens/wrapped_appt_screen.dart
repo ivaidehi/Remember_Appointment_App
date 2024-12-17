@@ -15,120 +15,93 @@ class WrappedApptScreen extends StatefulWidget {
 
 class _WrappedApptScreenState extends State<WrappedApptScreen> {
   late int wrappedApptIndex = 0;
-  late Map<String, dynamic> wrappedApptData;
+  late Map<String, dynamic> wrappedApptData = {};
 
   @override
   void didChangeDependencies() {
     final args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
     if (args != null) {
-      wrappedApptIndex = args["TappedCardIndex"] ?? 0; // Default to 0 if null
-      wrappedApptData = args["appointmentData"];
-
-      print(
-          "Arguments received: Index = $wrappedApptIndex, Appointment Data = $wrappedApptData");
-    } else {
-      wrappedApptIndex = 0; // Set a default index to avoid null issues
-      print("No arguments found in ModalRoute.");
+      wrappedApptIndex = args["TappedCardIndex"] ?? 0;
+      wrappedApptData = args["appointmentData"] ?? {};
     }
     super.didChangeDependencies();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      color: AppStyles.bgColor,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Apointment Details",
-            style: TextStyle(color: AppStyles.primary).copyWith(fontSize: 20),
-          ),
-          backgroundColor: AppStyles.bgColor,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Appointment Details",
+          style: TextStyle(color: AppStyles.primary).copyWith(fontSize: 20),
         ),
         backgroundColor: AppStyles.bgColor,
-        body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 30),
-          children: [
-            WrappedApptView(
-              index: wrappedApptIndex,
-              appointmentData: wrappedApptData??{},
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppStyles.primary,
-                  minimumSize: const Size(
-                      double.infinity, 50), // Full width and height 50
-                  shape: RoundedRectangleBorder(
-                    // Rectangular shape
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddnewApptScreen()),
-                  );
-                },
-                child: Text(
-                  '+  Add New ',
-                  style: AppStyles.headLineStyle3.copyWith(
-                    color: Colors.white,
-                  ),
+      ),
+      backgroundColor: AppStyles.bgColor,
+      body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 30),
+        children: [
+          WrappedApptView(
+            index: wrappedApptIndex,
+            appointmentData: wrappedApptData,
+          ),
+          const SizedBox(height: 15),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 5),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppStyles.primary,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const AddnewApptScreen()),
+                );
+              },
+              child: Text(
+                '+  Add New ',
+                style: AppStyles.headLineStyle3.copyWith(color: Colors.white),
+              ),
             ),
-            const SizedBox(
-              height: 15,
+          ),
+          const SizedBox(height: 15),
+          const SubHeadingWidget(subHeading: "Current Appointment Details"),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: AppStyles.inputBoxShadowStyle
+                .copyWith(color: Colors.white),
+            child: CurrentPatientApptDetails(
+              contact: wrappedApptData['Phone no.'] ?? 'N/A',
+              scheduleTreatment:
+              wrappedApptData['Schedule Treatment'] ?? 'N/A',
+              note: wrappedApptData['Note'] ?? 'N/A',
             ),
-            const SubHeadingWidget(subHeading: "Current Appointment Details"),
-            // const LineWidget(),
-            const SizedBox(
-              height: 20,
+          ),
+          const SizedBox(height: 25),
+          const SubHeadingWidget(subHeading: "Previous Appointment Details"),
+          const SizedBox(height: 25),
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: AppStyles.inputBoxShadowStyle
+                .copyWith(color: Colors.white),
+            child: const PreviousPatientApptDetails(
+              previous_appt_date: "01-07-2024",
+              schedule_treatment:
+              "Physical Therapy Session - Lower Back Pain and Muscle Pain",
+              note:
+              "Daily Yoga, Exercise and Patient needs to follow up in two weeks.",
             ),
-            // Current Patient's Appointment Details
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration:
-                  AppStyles.inputBoxShadowStyle.copyWith(color: Colors.white),
-              child: const CurrentPatientApptDetails(
-                  contact: "816344842",
-                  schedule_treatment:
-                      "Physical Therapy Session - Lower Back Pain and Muscle Pain",
-                  note: "Patient needs to follow up in two weeks."),
-            ),
-            // Previous Appointment Details
-            const SizedBox(
-              height: 25,
-            ),
-            const SubHeadingWidget(subHeading: "Previous Appointment Details"),
-            const SizedBox(
-              height: 25,
-            ),
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration:
-                  AppStyles.inputBoxShadowStyle.copyWith(color: Colors.white),
-              child: const PreviousPatientApptDetails(
-                  previous_appt_date: "01-07-2024",
-                  schedule_treatment:
-                      "Physical Therapy Session - Lower Back Pain and Muscle Pain",
-                  note:
-                      "Daily Yoga, Exercise and Patient needs to follow up in two weeks."),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 20),
+        ],
       ),
     );
   }

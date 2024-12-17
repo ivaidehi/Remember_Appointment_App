@@ -34,8 +34,8 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
     return Stack(
       children: [
         Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3),
           height: 48,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: AppStyles.inputBoxShadowStyle,
         ),
         TextFormField(

@@ -14,8 +14,7 @@ class AppStyles {
   static TextStyle headLineStyle3 = const TextStyle(fontSize: 17);
   static TextStyle headLineStyle3_0 =
       const TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
-  static TextStyle headLineStyle4= const TextStyle(fontSize: 15);
-
+  static TextStyle headLineStyle4 = const TextStyle(fontSize: 15);
 
   static BoxDecoration inputBoxShadowStyle = BoxDecoration(
     // color: Colors.white,
@@ -62,4 +61,5 @@ class AppStyles {
   //   ],
   //   borderRadius: BorderRadius.circular(8),
   // );
+
 }

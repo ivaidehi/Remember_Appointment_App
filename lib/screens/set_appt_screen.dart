@@ -1,5 +1,6 @@
 import 'package:appointment_app/data/timeslots_list.dart';
 import 'package:appointment_app/gets/get_date.dart';
+import 'package:appointment_app/myWidgets/line_widget.dart';
 import 'package:appointment_app/styles/app_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -75,15 +76,17 @@ class _SetApptScreenState extends State<SetApptScreen> {
   // Set appointment data in Firestore and block time slot if available
   Future<void> setApptData() async {
     if (_formKey.currentState?.validate() == true) {
-
       if (contactInput.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contact number cannot be empty.')),
         );
         return;
-      }else if (selectedDate == null && selectedDayparts == null && selectedTimeSlot == null){
+      } else if (selectedDate == null &&
+          selectedDayparts == null &&
+          selectedTimeSlot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select a Date, Time Slot and Day Part.')),
+          const SnackBar(
+              content: Text('Please select a Date, Time Slot and Day Part.')),
         );
         return;
       }
@@ -135,7 +138,6 @@ class _SetApptScreenState extends State<SetApptScreen> {
       if (selectedTimeSlot != null) {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
-
 
       await FirebaseFirestore.instance
           .collection("Appointments")
@@ -204,139 +206,151 @@ class _SetApptScreenState extends State<SetApptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 20),
-      child: Scaffold(
-        backgroundColor: AppStyles.bgColor,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          // This Error isn't Resloving Its getting unable to navigate to the HomeScreen
-          // leading: IconButton(
-          //   icon: const Icon(Icons.arrow_back),
-          //   onPressed: ()=>{}, // Navigate back
-          // ),
-          title: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Text(
-              'Set Appointment',
-              style: TextStyle(color: AppStyles.primary),
+    return Scaffold(
+      backgroundColor: AppStyles.bgColor,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Padding(
+          padding: const EdgeInsets.only(top: 30, left: 9),
+          child: AppBar(
+            backgroundColor: AppStyles.bgColor,
+            // This Error isn't Resloving Its getting unable to navigate to the HomeScreen
+            // leading: IconButton(
+            //   icon: const Icon(Icons.arrow_back),
+            //   onPressed: ()=>{}, // Navigate back
+            // ),
+            title: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Set Appointment',
+                      style: TextStyle(color: AppStyles.primary,).copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    Icon(Icons.mic, color: AppStyles.primary, size: 28,)
+                  ],
+                ),
+                SizedBox(height: 10,),
+                LineWidget()
+              ],
             ),
           ),
         ),
-        body: Container(
-          padding: const EdgeInsets.all(25),
-          child: SingleChildScrollView(
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const LabelsWidget(label: 'Name'),
-                  const SizedBox(height: 10),
-                  InputFieldWidget(
-                    defaultHintText: 'Enter Name',
-                    controller: nameInput,
-                    requiredInput: 'Name',
-                    hideText: false,
-                  ),
-                  const SizedBox(height: 20),
-                  const LabelsWidget(label: 'Contact'),
-                  const SizedBox(height: 10),
-                  InputFieldWidget(
-                    defaultHintText: 'Enter Contact No.',
-                    controller: contactInput,
-                    requiredInput: 'Contact No.',
-                    hideText: false,
-                    onlyInt: FilteringTextInputFormatter.digitsOnly,
-                    keyBoardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      const LabelsWidget(label: 'Date : '),
-                      Text(
-                        DateFormat.yMMMMd().format(DateTime.now()),
-                        style: AppStyles.headLineStyle3
-                            .copyWith(color: AppStyles.primary),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  GetApptDate(onDateSelected: (date) {
+      ),
+      body: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const LabelsWidget(label: 'Name'),
+                const SizedBox(height: 10),
+                InputFieldWidget(
+                  defaultHintText: 'Enter Name',
+                  controller: nameInput,
+                  requiredInput: 'Name',
+                  hideText: false,
+                ),
+                const SizedBox(height: 20),
+                const LabelsWidget(label: 'Contact No.'),
+                const SizedBox(height: 10),
+                InputFieldWidget(
+                  defaultHintText: 'Enter Contact No.',
+                  controller: contactInput,
+                  requiredInput: 'Contact No.',
+                  hideText: false,
+                  onlyInt: FilteringTextInputFormatter.digitsOnly,
+                  keyBoardType: TextInputType.number,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    const LabelsWidget(label: 'Date : '),
+                    Text(
+                      DateFormat.yMMMMd().format(DateTime.now()),
+                      style: AppStyles.headLineStyle3
+                          .copyWith(color: AppStyles.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                GetApptDate(onDateSelected: (date) {
+                  setState(() {
+                    selectedDate = date;
+                    formattedDate = DateFormat('dd-MM-yyyy').format(date);
+                  });
+                }),
+                const SizedBox(height: 10),
+                const LabelsWidget(label: 'Day Part'),
+                const SizedBox(height: 10),
+                DropdownWidget(
+                  itemList: dayPartsList,
+                  selectedItem: selectedDayparts,
+                  onChanged: (String? newValue) {
                     setState(() {
-                      selectedDate = date;
-                      formattedDate = DateFormat('dd-MM-yyyy').format(date);
+                      selectedDayparts = newValue;
                     });
-                  }),
-                  const SizedBox(height: 10),
-                  const LabelsWidget(label: 'Day Part'),
-                  const SizedBox(height: 10),
-                  DropdownWidget(
-                    itemList: dayPartsList,
-                    selectedItem: selectedDayparts,
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedDayparts = newValue;
-                      });
-                      fetchBlockedTimeSlots();
-                    },
-                    select: 'Morning',
+                    fetchBlockedTimeSlots();
+                  },
+                  select: 'Morning',
+                ),
+                const SizedBox(height: 20),
+                const LabelsWidget(label: 'Select Time Slot'),
+                const SizedBox(height: 10),
+                FutureBuilder<List<Widget>>(
+                  future: _buildTimeSlots(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.hasData) {
+                      return Wrap(
+                        spacing: 5,
+                        children: snapshot.data!,
+                      );
+                    } else {
+                      return const Text('Error loading time slots.');
+                    }
+                  },
+                ),
+                const SizedBox(height: 20),
+                const LabelsWidget(label: 'Schedule Treatment'),
+                const SizedBox(height: 10),
+                InputFieldWidget(
+                  defaultHintText: 'Schedule Treatment',
+                  controller: scheduleTreatmentInput,
+                  requiredInput: 'Schedule Treatment',
+                  hideText: false,
+                  keyBoardType: TextInputType.multiline,
+                ),
+                const SizedBox(height: 20),
+                const LabelsWidget(label: 'Note'),
+                const SizedBox(height: 10),
+                InputFieldWidget(
+                  defaultHintText: 'Additional Notes',
+                  controller: noteInput,
+                  requiredInput: 'Additional Notes',
+                  hideText: false,
+                  keyBoardType: TextInputType.multiline,
+                ),
+                const SizedBox(height: 30),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppStyles.primary,
                   ),
-                  const SizedBox(height: 20),
-                  const LabelsWidget(label: 'Select Time Slot'),
-                  const SizedBox(height: 10),
-                  FutureBuilder<List<Widget>>(
-                    future: _buildTimeSlots(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (snapshot.hasData) {
-                        return Wrap(
-                          spacing: 5,
-                          children: snapshot.data!,
-                        );
-                      } else {
-                        return const Text('Error loading time slots.');
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  const LabelsWidget(label: 'Schedule Treatment'),
-                  const SizedBox(height: 10),
-                  InputFieldWidget(
-                    defaultHintText: 'Schedule Treatment',
-                    controller: scheduleTreatmentInput,
-                    requiredInput: 'Schedule Treatment',
-                    hideText: false,
-                    keyBoardType: TextInputType.multiline,
-                  ),
-                  const SizedBox(height: 20),
-                  const LabelsWidget(label: 'Note'),
-                  const SizedBox(height: 10),
-                  InputFieldWidget(
-                    defaultHintText: 'Additional Notes',
-                    controller: noteInput,
-                    requiredInput: 'Additional Notes',
-                    hideText: false,
-                    keyBoardType: TextInputType.multiline,
-                  ),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppStyles.primary,
+                  onPressed: setApptData,
+                  child: Text(
+                    'Set Appointment',
+                    style: AppStyles.headLineStyle3.copyWith(
+                      color: Colors.white,
                     ),
-                    onPressed: setApptData,
-                    child: Text(
-                      'Set Appointment',
-                      style: AppStyles.headLineStyle3.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  )
-                ],
-              ),
+                  ),
+                )
+              ],
             ),
           ),
         ),
