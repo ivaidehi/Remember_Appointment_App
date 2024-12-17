@@ -18,7 +18,7 @@ class SetApptScreen extends StatefulWidget {
 }
 
 class _SetApptScreenState extends State<SetApptScreen> {
-  String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   var nameInput = TextEditingController();
   var contactInput = TextEditingController();
   var scheduleTreatmentInput = TextEditingController();
@@ -75,9 +75,38 @@ class _SetApptScreenState extends State<SetApptScreen> {
   // Set appointment data in Firestore and block time slot if available
   Future<void> setApptData() async {
     if (_formKey.currentState?.validate() == true) {
+
       if (contactInput.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contact number cannot be empty.')),
+        );
+        return;
+      }else if (selectedDate == null && selectedDayparts == null && selectedTimeSlot == null){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a Date, Time Slot and Day Part.')),
+        );
+        return;
+      }
+
+      if (selectedDate == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a date.')),
+        );
+        return;
+      }
+
+      // Validate selected day part
+      if (selectedDayparts == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a day part.')),
+        );
+        return;
+      }
+
+      // Validate selected time slot
+      if (selectedTimeSlot == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a time slot.')),
         );
         return;
       }
@@ -107,6 +136,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
 
+
       await FirebaseFirestore.instance
           .collection("Appointments")
           .doc(contactInput.text.trim())
@@ -118,6 +148,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
         'Selected Time Slot': selectedTimeSlot,
         'Schedule Treatment': scheduleTreatmentInput.text.trim(),
         'Note': noteInput.text.trim(),
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       // Clear input fields and reset state
@@ -234,6 +265,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
                   GetApptDate(onDateSelected: (date) {
                     setState(() {
                       selectedDate = date;
+                      formattedDate = DateFormat('dd-MM-yyyy').format(date);
                     });
                   }),
                   const SizedBox(height: 10),

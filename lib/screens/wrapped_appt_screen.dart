@@ -1,4 +1,3 @@
-import 'package:appointment_app/data/wrapped_patient_appt_json.dart';
 import 'package:appointment_app/gets/previous_patient_appt_details.dart';
 import 'package:appointment_app/myViews/wrapped_appt_view.dart';
 import 'package:appointment_app/myWidgets/sub_heading_widget.dart';
@@ -16,11 +15,23 @@ class WrappedApptScreen extends StatefulWidget {
 
 class _WrappedApptScreenState extends State<WrappedApptScreen> {
   late int wrappedApptIndex = 0;
+  late Map<String, dynamic> wrappedApptData;
+
   @override
   void didChangeDependencies() {
-    var args = ModalRoute.of(context)!.settings.arguments as Map;
-    print("Opened index ${args["index"]}");
-    wrappedApptIndex = args["index"];
+    final args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null) {
+      wrappedApptIndex = args["TappedCardIndex"] ?? 0; // Default to 0 if null
+      wrappedApptData = args["appointmentData"];
+
+      print(
+          "Arguments received: Index = $wrappedApptIndex, Appointment Data = $wrappedApptData");
+    } else {
+      wrappedApptIndex = 0; // Set a default index to avoid null issues
+      print("No arguments found in ModalRoute.");
+    }
     super.didChangeDependencies();
   }
 
@@ -41,7 +52,10 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
         body: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 30),
           children: [
-            WrappedApptView(wrappedAppt: wrappedApptList[wrappedApptIndex]),
+            WrappedApptView(
+              index: wrappedApptIndex,
+              appointmentData: wrappedApptData??{},
+            ),
             const SizedBox(
               height: 15,
             ),
@@ -60,7 +74,8 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const AddnewApptScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const AddnewApptScreen()),
                   );
                 },
                 child: Text(

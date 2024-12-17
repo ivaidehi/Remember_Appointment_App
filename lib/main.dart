@@ -106,5 +106,5 @@ class InitialScreenState extends State<InitialScreen> {
         ? Container( color: AppStyles.bgColor, child: const CircularProgressIndicator())
         : Container( color: AppStyles.bgColor,); // Return an empty Container
   }
-  
+
 }

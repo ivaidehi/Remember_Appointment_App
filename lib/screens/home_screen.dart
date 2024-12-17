@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:appointment_app/gets/get_docnm.dart';
 import 'package:flutter/material.dart';
-import '../data/wrapped_patient_appt_json.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../myViews/search_view.dart';
 import '../myViews/wrapped_appt_view.dart';
 import '../myWidgets/sub_heading_widget.dart';
@@ -16,18 +16,19 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  deletedWrappedAppt (int i){
-    setState(() {
-      try{
-        wrappedApptList.removeAt(i);
-        log('Appointment $i delete successfully');
-      }
-      catch(e){
-        log('Not Delete. Error Occured.');
-      }
 
-    });
+  Future<void> deleteFirestoreAppointment(String documentId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Appointments')
+          .doc(documentId)
+          .delete();
+      log('Appointment $documentId deleted successfully');
+    } catch (e) {
+      log('Error deleting appointment: $e');
+    }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(20),
           child: ListView(
             children: [
-              // Doc. Name, Profile Pic. & Search bar
+              // Doctor's Name, Profile Pic. & Search bar
               Column(
                 children: [
                   // Doc. Name & Profile Pic.
@@ -84,26 +85,68 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 20),
               // Recently Opened Appointments
-              // title - Recently Opened Appointments & view all
               const SubHeadingWidget(subHeading: "  Recent Appointments"),
               const SizedBox(height: 15),
-              // Wrapped Appointment
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: wrappedApptList.length,
-                itemBuilder: (context, index) {
-                  var takeSingleWrappedAppt = wrappedApptList[index];
-                  return GestureDetector(
-                    onTap: () {
-                      print("Tapped on : $index");
-                      Navigator.pushNamed(context, "wrapped_appt_screen",
-                          arguments: {"index": index});
+
+              // Wrapped Appointment - Fetching from Firestore
+              StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('Appointments')
+                    .orderBy('timestamp', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return Center(child: Text("Error: ${snapshot.error}"));
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                    return const Center(child: Text("-No Appointments Found-"));
+                  }
+
+                  final appointments = snapshot.data!.docs;
+
+                  if (appointments.isEmpty) {
+                    return const Center(
+                        child: Text("-No Appointments Available-"));
+                  }
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: appointments.length,
+                    itemBuilder: (context, index) {
+                      final appointmentData = appointments[index];
+                      final documentId = appointmentData.id;
+
+                      // Cast the data to Map<String, dynamic>
+                      final appointmentMap =
+                          appointmentData.data() as Map<String, dynamic>;
+
+                      return GestureDetector(
+                        onTap: () {
+                          print("Tapped on document: $documentId");
+                          Navigator.pushNamed(
+                            context,
+                            "wrapped_appt_screen",
+                            arguments: {
+                              "documentId": documentId,
+                              "TappedCardIndex": index,
+                              "appointmentData": appointmentMap
+                            },
+                          );
+                        },
+                        child: WrappedApptView(
+                          appointmentData: appointmentMap,
+                          onDelete: () =>
+                              deleteFirestoreAppointment(documentId),
+                          index: index,
+                        ),
+                      );
                     },
-                    child: WrappedApptView(
-                      wrappedAppt: takeSingleWrappedAppt,
-                      onDelete: () => deletedWrappedAppt(index),
-                    ),
                   );
                 },
               ),
