@@ -15,7 +15,6 @@ import 'package:appointment_app/styles/app_styles.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
   String apiKEY = dotenv.env['FIREBASE_API_KEY'] ?? '';
   String appID = dotenv.env['APP_ID'] ?? '';
