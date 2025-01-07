@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:appointment_app/data/timeslots_list.dart';
 import 'package:appointment_app/gets/get_date.dart';
 import 'package:appointment_app/myWidgets/line_widget.dart';
 import 'package:appointment_app/styles/app_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:twilio_flutter/twilio_flutter.dart';
 import '../gets/get_time.dart';
 import '../myWidgets/dropdown_widget.dart';
 import '../myWidgets/input_field_widget.dart';
@@ -19,6 +22,9 @@ class SetApptScreen extends StatefulWidget {
 }
 
 class _SetApptScreenState extends State<SetApptScreen> {
+  late TwilioFlutter SMSTwilioFlutter;
+  late TwilioFlutter whatsappMsgTwilioFlutter;
+
   String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   var nameInput = TextEditingController();
   var contactInput = TextEditingController();
@@ -75,13 +81,19 @@ class _SetApptScreenState extends State<SetApptScreen> {
 
   // Set appointment data in Firestore and block time slot if available
   Future<void> setApptData() async {
+    // final getContact = await FirebaseFirestore.instance
+    //     .collection("Appointments")
+    //     .doc(contactInput.text);
+
     if (_formKey.currentState?.validate() == true) {
       if (contactInput.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contact number cannot be empty.')),
         );
         return;
-      } else if (selectedDate == null &&
+      }
+
+      else if (selectedDate == null &&
           selectedDayparts == null &&
           selectedTimeSlot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -98,7 +110,6 @@ class _SetApptScreenState extends State<SetApptScreen> {
         return;
       }
 
-      // Validate selected day part
       if (selectedDayparts == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a day part.')),
@@ -106,7 +117,6 @@ class _SetApptScreenState extends State<SetApptScreen> {
         return;
       }
 
-      // Validate selected time slot
       if (selectedTimeSlot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Please select a time slot.')),
@@ -117,9 +127,8 @@ class _SetApptScreenState extends State<SetApptScreen> {
       if (blockedTimeSlots[selectedTimeSlot] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-                'Selected time slot is blocked, please choose another one.'),
-          ),
+              content: Text(
+                  'Selected time slot is blocked, please choose another one.')),
         );
         return;
       }
@@ -128,23 +137,25 @@ class _SetApptScreenState extends State<SetApptScreen> {
       if (isBooked) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Selected time slot is already booked.'),
-          ),
+              content: Text('Selected time slot is already booked.')),
         );
         return;
       }
 
-      // Only block the time slot in Firestore here
       if (selectedTimeSlot != null) {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
 
+      User? user = FirebaseAuth.instance.currentUser;
+
+      // Save appointment to Firestore
       await FirebaseFirestore.instance
           .collection("Appointments")
           .doc(contactInput.text.trim())
           .set({
+        'userId': FirebaseAuth.instance.currentUser?.uid,
         'Patient Name': nameInput.text.trim(),
-        'Phone no.': contactInput.text.trim(),
+        'Contact No.': contactInput.text.trim(),
         'Selected Date': formattedDate,
         'Day Part': selectedDayparts.toString(),
         'Selected Time Slot': selectedTimeSlot,
@@ -152,6 +163,9 @@ class _SetApptScreenState extends State<SetApptScreen> {
         'Note': noteInput.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
       });
+
+      sendSms();
+      // sendWhatsappMsg();
 
       // Clear input fields and reset state
       nameInput.clear();
@@ -166,6 +180,7 @@ class _SetApptScreenState extends State<SetApptScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Appointment set successfully!')),
       );
+
     }
   }
 
@@ -200,9 +215,85 @@ class _SetApptScreenState extends State<SetApptScreen> {
 
   @override
   void initState() {
+    SMSTwilioFlutter = TwilioFlutter(
+        accountSid: "ACbf9e595631e513acd334810e74bebd33",
+        authToken: "d22dee0ceb51240580e47b92b9360c2d",
+        twilioNumber: "+12317517709");
+
+    whatsappMsgTwilioFlutter = TwilioFlutter(
+        accountSid: "ACbf9e595631e513acd334810e74bebd33",
+        authToken: "d22dee0ceb51240580e47b92b9360c2d",
+        twilioNumber: "whatsapp:+14155238886");
+
     super.initState();
     fetchBlockedTimeSlots();
   }
+
+  // Send confirmation message after appointment is set
+  Future<void> sendSms() async {
+    try {
+      // Ensure the contact number and name are valid before sending the SMS
+      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+        await SMSTwilioFlutter.sendSMS(
+          toNumber: contactInput.text.trim(),
+          messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
+        );
+
+        // Provide feedback upon successful message delivery
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('SMS sent successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid contact number or name.')),
+        );
+      }
+    } catch (e) {
+      // Handle errors like unverified number
+      if (e.toString().contains("unverified")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Message failed: Number is not verified. Please verify the number in Twilio.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
+    }
+  }
+  // not working
+  // Future<void> sendWhatsappMsg() async {
+  //   try {
+  //     // Ensure the contact number and name are valid before sending the SMS
+  //     if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+  //       TwilioResponse twilioResponse = await whatsappMsgTwilioFlutter.sendWhatsApp(
+  //         toNumber: "whatsapp:${contactInput.text.trim()}",
+  //         messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
+  //       );
+  //
+  //       // Provide feedback upon successful message delivery
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Whatsapp message sent successfully!')),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Invalid Whatsapp number or name.')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     // Handle errors like unverified number
+  //     if (e.toString().contains("unverified")) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Whatsapp message failed: Number is not verified. Please verify the number in Twilio.')),
+  //       );
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Failed to send Whatsapp message: $e')),
+  //       );
+  //     }
+  //   }
+  // }
+
 
   @override
   Widget build(BuildContext context) {
@@ -226,13 +317,21 @@ class _SetApptScreenState extends State<SetApptScreen> {
                   children: [
                     Text(
                       'Set Appointment',
-                      style: TextStyle(color: AppStyles.primary,).copyWith(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: AppStyles.primary,
+                      ).copyWith(fontWeight: FontWeight.bold),
                     ),
-                    Icon(Icons.mic, color: AppStyles.primary, size: 28,)
+                    Icon(
+                      Icons.mic,
+                      color: AppStyles.primary,
+                      size: 28,
+                    )
                   ],
                 ),
-                SizedBox(height: 10,),
-                LineWidget()
+                const SizedBox(
+                  height: 10,
+                ),
+                const LineWidget()
               ],
             ),
           ),
@@ -255,15 +354,15 @@ class _SetApptScreenState extends State<SetApptScreen> {
                   hideText: false,
                 ),
                 const SizedBox(height: 20),
-                const LabelsWidget(label: 'Contact No.'),
+                const LabelsWidget(label: 'Mobile No.'),
                 const SizedBox(height: 10),
                 InputFieldWidget(
-                  defaultHintText: 'Enter Contact No.',
+                  defaultHintText: 'Enter Mobile No.',
                   controller: contactInput,
                   requiredInput: 'Contact No.',
                   hideText: false,
-                  onlyInt: FilteringTextInputFormatter.digitsOnly,
-                  keyBoardType: TextInputType.number,
+                  // onlyInt: FilteringTextInputFormatter.digitsOnly,
+                  // keyBoardType: TextInputType.number,
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -303,6 +402,35 @@ class _SetApptScreenState extends State<SetApptScreen> {
                 FutureBuilder<List<Widget>>(
                   future: _buildTimeSlots(),
                   builder: (context, snapshot) {
+                    if (selectedDayparts == null) {
+                      return Row(
+                        children: [
+                          Expanded(child: Container(
+                            height: 40,
+                            width: 180,
+                            decoration: BoxDecoration(
+                                // color: Colors.grey.withOpacity(0.3),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20)
+                            ),
+                          ),
+                          ),
+                            const SizedBox(width: 20),
+
+                          Expanded(child: Container(
+                            height: 40,
+                            width: 180,
+                            decoration: BoxDecoration(
+                                // color: Colors.grey.withOpacity(0.3),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20)
+                            ),
+                          ),
+                          ),
+
+                        ],
+                      );
+                    }
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(),

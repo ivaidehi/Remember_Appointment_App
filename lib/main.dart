@@ -1,3 +1,9 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'myViews/bottom_navbar.dart';
 import 'package:appointment_app/screens/addnew_appt_screen.dart';
 import 'package:appointment_app/screens/home_screen.dart';
 import 'package:appointment_app/screens/login_screen.dart';
@@ -5,15 +11,11 @@ import 'package:appointment_app/screens/set_appt_screen.dart';
 import 'package:appointment_app/screens/wrapped_appt_screen.dart';
 import 'package:appointment_app/screens/register_screen.dart';
 import 'package:appointment_app/styles/app_styles.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'myViews/bottom_navbar.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyAr2tkIdrWN_K_TnpjenjMT8PwuH_nQpJ4",
@@ -22,6 +24,7 @@ Future<void> main() async {
       projectId: "appointment-app-data",
     ),
   );
+
   runApp(const MyApp());
 }
 
@@ -103,8 +106,8 @@ class InitialScreenState extends State<InitialScreen> {
   @override
   Widget build(BuildContext context) {
     return _loading
-        ? Container( color: AppStyles.bgColor, child: const CircularProgressIndicator())
-        : Container( color: AppStyles.bgColor,); // Return an empty Container
+        ? Container(
+            color: AppStyles.bgColor, child: const CircularProgressIndicator())
+        : Container(color: AppStyles.bgColor); // Return an empty Container
   }
-
 }

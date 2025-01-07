@@ -79,7 +79,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
             decoration: AppStyles.inputBoxShadowStyle
                 .copyWith(color: Colors.white),
             child: CurrentPatientApptDetails(
-              contact: wrappedApptData['Phone no.'] ?? 'N/A',
+              contact: wrappedApptData['Contact No.'] ?? 'N/A',
               scheduleTreatment:
               wrappedApptData['Schedule Treatment'] ?? 'N/A',
               note: wrappedApptData['Note'] ?? 'N/A',

@@ -1,10 +1,9 @@
 import 'package:appointment_app/myWidgets/input_field_widget.dart';
 import 'package:flutter/material.dart';
-import '../styles/app_styles.dart';
 
 class SearchView extends StatefulWidget {
   final TextEditingController searchInput;
-  SearchView({super.key, required this.searchInput});
+  const SearchView({super.key, required this.searchInput});
 
   @override
   State<SearchView> createState() => _SearchViewState();

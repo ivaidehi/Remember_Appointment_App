@@ -1,7 +1,7 @@
 import 'dart:developer';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../myViews/search_view.dart';
 import '../myViews/wrapped_appt_view.dart';
 import '../myWidgets/input_field_widget.dart';
 import '../myWidgets/sub_heading_widget.dart';
@@ -16,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<DocumentSnapshot> filteredAppointments = [];
   List<DocumentSnapshot> allAppointments = []; // To hold all appointments
 
@@ -119,7 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('Appointments')
+                      .collection("Appointments")
+                      .where('userId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
                       .orderBy('timestamp', descending: true)
                       .snapshots(),
                   builder: (context, snapshot) {
