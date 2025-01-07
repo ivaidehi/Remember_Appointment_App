@@ -17,13 +17,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
+  String apiKEY = dotenv.env['FIREBASE_API_KEY'] ?? '';
+  String appID = dotenv.env['APP_ID'] ?? '';
+  String messagingSENDERID = dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '';
+  String projectID = dotenv.env['PROJECT_ID'] ?? '';
+
   // Initialize Firebase
   await Firebase.initializeApp(
-    options: const FirebaseOptions(
-      apiKey: "AIzaSyAr2tkIdrWN_K_TnpjenjMT8PwuH_nQpJ4",
-      appId: "1:243828159731:android:5a09b21c49a1a5c61c3386",
-      messagingSenderId: "243828159731",
-      projectId: "appointment-app-data",
+    options: FirebaseOptions(
+      apiKey: apiKEY,
+      appId: appID,
+      messagingSenderId: messagingSENDERID,
+      projectId: projectID,
     ),
   );
 
