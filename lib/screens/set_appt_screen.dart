@@ -7,6 +7,7 @@ import 'package:appointment_app/styles/app_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import 'package:twilio_flutter/twilio_flutter.dart';
 import '../gets/get_time.dart';
@@ -213,17 +214,23 @@ class _SetApptScreenState extends State<SetApptScreen> {
     return timeSlotAsPerDayparts;
   }
 
+  String accountSID = dotenv.env['TWILIO_ACCOUNT_SID'] ?? '';
+  String authToken = dotenv.env['TWILIO_AUTH_TOKEN'] ?? '';
+  String twilioPhoneNumber = dotenv.env['TWILIO_PHONE_NUMBER'] ?? '';
+  String twilioWhatsappNumber = dotenv.env['TWILIO_WHATSAPP_NUMBER'] ?? '';
+
+
   @override
   void initState() {
     SMSTwilioFlutter = TwilioFlutter(
-        accountSid: "ACbf9e595631e513acd334810e74bebd33",
-        authToken: "d22dee0ceb51240580e47b92b9360c2d",
-        twilioNumber: "+12317517709");
+        accountSid: accountSID,
+        authToken: authToken,
+        twilioNumber: twilioPhoneNumber);
 
     whatsappMsgTwilioFlutter = TwilioFlutter(
-        accountSid: "ACbf9e595631e513acd334810e74bebd33",
-        authToken: "d22dee0ceb51240580e47b92b9360c2d",
-        twilioNumber: "whatsapp:+14155238886");
+        accountSid: accountSID,
+        authToken: authToken,
+        twilioNumber: twilioWhatsappNumber);
 
     super.initState();
     fetchBlockedTimeSlots();
@@ -234,6 +241,8 @@ class _SetApptScreenState extends State<SetApptScreen> {
     try {
       // Ensure the contact number and name are valid before sending the SMS
       if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+        print("Twilio Account SID : $accountSID");
+        print("Twilio Phone Number : $twilioPhoneNumber");
         await SMSTwilioFlutter.sendSMS(
           toNumber: contactInput.text.trim(),
           messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
