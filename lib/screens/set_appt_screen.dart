@@ -147,8 +147,6 @@ class _SetApptScreenState extends State<SetApptScreen> {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
 
-      User? user = FirebaseAuth.instance.currentUser;
-
       // Save appointment to Firestore
       await FirebaseFirestore.instance
           .collection("Appointments")
@@ -270,38 +268,37 @@ class _SetApptScreenState extends State<SetApptScreen> {
       }
     }
   }
-  // not working
-  // Future<void> sendWhatsappMsg() async {
-  //   try {
-  //     // Ensure the contact number and name are valid before sending the SMS
-  //     if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
-  //       TwilioResponse twilioResponse = await whatsappMsgTwilioFlutter.sendWhatsApp(
-  //         toNumber: "whatsapp:${contactInput.text.trim()}",
-  //         messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
-  //       );
-  //
-  //       // Provide feedback upon successful message delivery
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Whatsapp message sent successfully!')),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Invalid Whatsapp number or name.')),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     // Handle errors like unverified number
-  //     if (e.toString().contains("unverified")) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text('Whatsapp message failed: Number is not verified. Please verify the number in Twilio.')),
-  //       );
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text('Failed to send Whatsapp message: $e')),
-  //       );
-  //     }
-  //   }
-  // }
+  Future<void> sendWhatsappMsg() async {
+    try {
+      // Ensure the contact number and name are valid before sending the SMS
+      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+        await whatsappMsgTwilioFlutter.sendWhatsApp(
+          toNumber: contactInput.text.trim(),
+          messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
+        );
+
+        // Provide feedback upon successful message delivery
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Whatsapp message sent successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid Whatsapp number or name.')),
+        );
+      }
+    } catch (e) {
+      // Handle errors like unverified number
+      if (e.toString().contains("unverified")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Whatsapp message failed: Number is not verified. Please verify the number in Twilio.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send Whatsapp message: $e')),
+        );
+      }
+    }
+  }
 
 
   @override
@@ -418,19 +415,19 @@ class _SetApptScreenState extends State<SetApptScreen> {
                             height: 40,
                             width: 180,
                             decoration: BoxDecoration(
-                                // color: Colors.grey.withOpacity(0.3),
+                              // color: Colors.grey.withOpacity(0.3),
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20)
                             ),
                           ),
                           ),
-                            const SizedBox(width: 20),
+                          const SizedBox(width: 20),
 
                           Expanded(child: Container(
                             height: 40,
                             width: 180,
                             decoration: BoxDecoration(
-                                // color: Colors.grey.withOpacity(0.3),
+                              // color: Colors.grey.withOpacity(0.3),
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(20)
                             ),

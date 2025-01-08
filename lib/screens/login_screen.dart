@@ -27,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> login() async {
     try {
       await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: useremail, password: password);
+          .signInWithEmailAndPassword(email: useremail.trim(), password: password);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login Successfully.')),
       );

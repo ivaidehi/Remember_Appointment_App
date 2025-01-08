@@ -40,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           FirebaseFirestore.instance.collection("Users").doc(emailController.text.toString()).set({
             'First Name':fnameController.text.toString(),
             'Last Name':lnameController.text.toString(),
-            'Email':emailController.text.toString(),
+            'Email':emailController.text.toString().trim(),
             'Role':selectedRole.toString(),
           });
           return null;

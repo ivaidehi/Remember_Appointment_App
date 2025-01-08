@@ -35,9 +35,11 @@ class WrappedApptView extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(patientName,
-                    style: AppStyles.headLineStyle3_0
-                        .copyWith(color: AppStyles.primary)),
+                Expanded(
+                  child: Text(patientName,
+                      style: AppStyles.headLineStyle3_0
+                          .copyWith(color: AppStyles.primary)),
+                ),
                 GestureDetector(
                   onTap: onDelete,
                   child: Text(
