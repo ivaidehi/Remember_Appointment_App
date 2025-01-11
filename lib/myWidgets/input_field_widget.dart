@@ -11,6 +11,8 @@ class InputFieldWidget extends StatefulWidget {
   final Widget? suffixIcon;
   TextInputFormatter? onlyInt;
   TextInputType? keyBoardType;
+  final bool isReadOnly;
+  final bool isEnabled;
 
   InputFieldWidget({
     super.key,
@@ -22,6 +24,8 @@ class InputFieldWidget extends StatefulWidget {
     this.showWarning,
     this.onlyInt,
     this.keyBoardType,
+    this.isReadOnly = false,
+    this.isEnabled = true,
   });
 
   @override
@@ -29,6 +33,28 @@ class InputFieldWidget extends StatefulWidget {
 }
 
 class _InputFieldWidgetState extends State<InputFieldWidget> {
+  late FocusNode _focusNode;
+  bool _isTapped = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _focusNode.addListener(_handleFocusChange);
+  }
+
+  void _handleFocusChange() {
+    setState(() {
+      _isTapped = _focusNode.hasFocus;
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -39,6 +65,7 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
           decoration: AppStyles.inputBoxShadowStyle,
         ),
         TextFormField(
+          focusNode: _focusNode,
           validator: (value) {
             if (value == null || value.isEmpty) {
               setState(() {
@@ -62,6 +89,10 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
               borderSide: BorderSide(color: Colors.transparent),
               borderRadius: BorderRadius.all(Radius.circular(5)),
             ),
+            disabledBorder: const OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.transparent),
+              borderRadius: BorderRadius.all(Radius.circular(5)),
+            ),
             focusedBorder: OutlineInputBorder(
               borderSide: BorderSide(color: AppStyles.secondary),
               borderRadius: const BorderRadius.all(Radius.circular(5)),
@@ -77,13 +108,17 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
             errorText: widget.showWarning,
             contentPadding: const EdgeInsets.symmetric(horizontal: 15),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: _isTapped
+                ? Colors.grey.shade100 // Color when focused
+                : Colors.white, // Default color
             suffixIcon: widget.suffixIcon,
           ),
           inputFormatters: widget.onlyInt != null ? [widget.onlyInt!] : [],
           keyboardType: widget.keyBoardType,
           maxLines: widget.hideText ? 1 : null,
           minLines: 1,
+          readOnly: widget.isReadOnly,
+          enabled: widget.isEnabled,
         ),
       ],
     );

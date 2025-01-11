@@ -25,6 +25,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
     if (args != null) {
       wrappedApptIndex = args["TappedCardIndex"] ?? 0;
       wrappedApptData = args["appointmentData"] ?? {};
+      wrappedApptData['documentID'] = args['documentID'] ?? 'No ID Available';
     }
     super.didChangeDependencies();
   }
@@ -59,10 +60,23 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                 ),
               ),
               onPressed: () {
+                // Fetch and print the documentID for assurance
+                final documentID = wrappedApptData['documentID'] ?? 'No ID Available';
+                debugPrint('Document ID: $documentID');
+
+                // Navigate to AddnewApptScreen and pass the required arguments
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const AddnewApptScreen()),
+                    builder: (context) => AddnewApptScreen(),
+                    settings: RouteSettings(
+                      arguments: {
+                        'name': wrappedApptData['Patient Name'] ?? '',
+                        'contact': wrappedApptData['Contact No.'] ?? '',
+                        'documentID': documentID, // Pass the documentID here
+                      },
+                    ),
+                  ),
                 );
               },
               child: Text(
@@ -76,15 +90,15 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(15),
-            decoration: AppStyles.inputBoxShadowStyle
-                .copyWith(color: Colors.white),
+            decoration: AppStyles.inputBoxShadowStyle.copyWith(color: Colors.white),
             child: CurrentPatientApptDetails(
-              contact: wrappedApptData['Contact No.'] ?? 'N/A',
-              scheduleTreatment:
-              wrappedApptData['Schedule Treatment'] ?? 'N/A',
-              note: wrappedApptData['Note'] ?? 'N/A',
+              contact: _getStringFromMap(wrappedApptData, 'Contact No.') ?? 'N/A',
+              scheduleTreatment: _getStringFromMap(wrappedApptData, 'Schedule Treatment') ?? 'N/A',
+              note: _getStringFromMap(wrappedApptData, 'Note') ?? 'N/A',
             ),
           ),
+
+
           const SizedBox(height: 25),
           const SubHeadingWidget(subHeading: "Previous Appointment Details"),
           const SizedBox(height: 25),
@@ -105,4 +119,13 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
       ),
     );
   }
+}
+String? _getStringFromMap(Map<String, dynamic> map, String key) {
+  var value = map[key];
+  if (value is String) {
+    return value;
+  } else if (value != null) {
+    return value.toString();  // Ensure non-string values are cast to strings
+  }
+  return null;  // If the value is null or not found
 }

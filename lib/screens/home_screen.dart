@@ -18,7 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<DocumentSnapshot> filteredAppointments = [];
-  List<DocumentSnapshot> allAppointments = []; // To hold all appointments
+  List<DocumentSnapshot> allAppointments = [];
 
   @override
   void initState() {
@@ -26,19 +26,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _searchController.addListener(_filterAppointments);
   }
 
-  // Function to filter appointments based on patient name
   void _filterAppointments() {
     String query = _searchController.text.trim().toLowerCase();
     setState(() {
       filteredAppointments = allAppointments.where((appt) {
         final data = appt.data() as Map<String, dynamic>;
-        final patientName = data['Patient Name']?.toLowerCase() ?? '';
-        return patientName.contains(query);
+        final patientNames = data['Patient Name'] as List<dynamic>? ?? [];
+        return patientNames.any((name) =>
+            name.toString().toLowerCase().contains(query));
       }).toList();
     });
   }
 
-  // Function to delete an appointment from Firestore
   Future<void> deleteFirestoreAppointment(String documentId) async {
     try {
       await FirebaseFirestore.instance
@@ -60,7 +59,6 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Header: Doctor's Name, Profile Picture, and Search Bar
               Column(
                 children: [
                   Row(
@@ -98,7 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  // Search Bar
                   Container(
                     margin: const EdgeInsets.all(4),
                     child: InputFieldWidget(
@@ -106,7 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       controller: _searchController,
                       requiredInput: 'Please enter valid text',
                       hideText: false,
-                      suffixIcon: const Icon(Icons.search, color: Colors.grey,),
+                      suffixIcon: const Icon(Icons.search, color: Colors.grey),
                     ),
                   ),
                 ],
@@ -114,8 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 20),
               const SubHeadingWidget(subHeading: "  Recent Appointments"),
               const SizedBox(height: 15),
-
-              // Fetch Appointments from Firestore and Filter
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -132,47 +127,60 @@ class _HomeScreenState extends State<HomeScreen> {
                       return Center(child: Text("Error: ${snapshot.error}"));
                     }
 
-                    // Load appointments into `allAppointments` and `filteredAppointments`
-                    if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-                      allAppointments = snapshot.data!.docs;
-                      filteredAppointments = filteredAppointments.isEmpty
-                          ? allAppointments
-                          : filteredAppointments;
-                    } else {
-                      return const Text("Appointments Not Available. ");
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const Center(child: Text("Appointments Not Available."));
                     }
-                    return ListView.builder(
-                      itemCount: filteredAppointments.length,
-                      itemBuilder: (context, index) {
-                        final appointmentData =
-                        filteredAppointments[index].data()
-                        as Map<String, dynamic>;
-                        final documentId = filteredAppointments[index].id;
 
-                        return GestureDetector(
-                          onTap: () {
-                            print("Tapped on document: $documentId");
-                            Navigator.pushNamed(
-                              context,
-                              "wrapped_appt_screen",
-                              arguments: {
-                                "documentId": documentId,
-                                "TappedCardIndex": index,
-                                "appointmentData": appointmentData,
-                              },
-                            );
-                          },
-                          child: WrappedApptView(
-                            appointmentData: appointmentData,
-                            onDelete: () => deleteFirestoreAppointment(documentId),
-                            index: index,
-                          ),
-                        );
+                    // Ensure allAppointments is refreshed with new data
+                    final allAppointments = snapshot.data!.docs;
+
+                    // Keep filteredAppointments synchronized with the stream
+                    filteredAppointments = List.from(allAppointments);
+
+                    return RefreshIndicator(
+                      color: AppStyles.primary,
+                      backgroundColor: AppStyles.bgColor,
+                      onRefresh: () async {
+                        // Trigger the stream to refresh
+                        setState(() {
+                          filteredAppointments = List.from(allAppointments);
+                        });
+                        await Future.delayed(const Duration(milliseconds: 500));
                       },
+                      child: ListView.builder(
+                        itemCount: filteredAppointments.length,
+                        itemBuilder: (context, index) {
+                          final appointmentData =
+                          filteredAppointments[index].data() as Map<String, dynamic>;
+                          final documentId = filteredAppointments[index].id;
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                "wrapped_appt_screen",
+                                arguments: {
+                                  "documentID": documentId,
+                                  "TappedCardIndex": index,
+                                  "appointmentData": appointmentData,
+                                },
+                              );
+                            },
+                            child: WrappedApptView(
+                              appointmentData: appointmentData,
+                              onDelete: () => deleteFirestoreAppointment(documentId),
+                              index: index,
+                            ),
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
               ),
+
+
+
             ],
           ),
         ),

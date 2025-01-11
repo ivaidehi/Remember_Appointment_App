@@ -13,6 +13,8 @@ import 'package:appointment_app/screens/wrapped_appt_screen.dart';
 import 'package:appointment_app/screens/register_screen.dart';
 import 'package:appointment_app/styles/app_styles.dart';
 
+import 'myViews/forget_password.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -51,9 +53,10 @@ class MyApp extends StatelessWidget {
         "home_screen": (context) => const HomeScreen(),
         "wrapped_appt_screen": (context) => const WrappedApptScreen(),
         "set_appt_screen": (context) => const SetApptScreen(),
-        "addnew_appt_screen": (context) => const AddnewApptScreen(),
+        "addnew_appt_screen": (context) => AddnewApptScreen(),
         "login_screen": (context) => const LoginScreen(),
         "register_screen": (context) => const RegisterScreen(),
+        "forget_password": (context) => ForgotPasswordScreen(),
       },
     );
   }

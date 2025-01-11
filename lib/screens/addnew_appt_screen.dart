@@ -4,21 +4,29 @@ import 'package:appointment_app/styles/app_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import '../gets/get_time.dart';
 import '../myWidgets/dropdown_widget.dart';
 import '../myWidgets/input_field_widget.dart';
 import '../myWidgets/labels_widget.dart';
+import '../services/twilio_service.dart';
 
 class AddnewApptScreen extends StatefulWidget {
-  const AddnewApptScreen({super.key});
+  String? documentID;
+
+  AddnewApptScreen({super.key, String? documentID});
 
   @override
   State<AddnewApptScreen> createState() => _AddnewApptScreenState();
 }
 
 class _AddnewApptScreenState extends State<AddnewApptScreen> {
-  String formattedDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+  late TwilioService twilioService;
+
+  late String docID;
+
+  String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   var nameInput = TextEditingController();
   var contactInput = TextEditingController();
   var scheduleTreatmentInput = TextEditingController();
@@ -30,6 +38,21 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
   Map<String, bool> blockedTimeSlots = {};
   String? selectedTimeSlot;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void didChangeDependencies() {
+    final args =
+    ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+    if (args != null) {
+      nameInput.text = args['name'] ?? '';
+      contactInput.text = args['contact'] ?? '';
+      docID = args['documentID'] ??
+          FirebaseFirestore.instance.collection('Appointments').doc().id;
+      print("Document ID: $docID"); // Print the documentID for assurance
+    }
+    super.didChangeDependencies();
+  }
 
   // Fetch blocked time slots for the current date
   Future<void> fetchBlockedTimeSlots() async {
@@ -72,8 +95,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
     return snapshot.docs.isNotEmpty;
   }
 
-  // Set appointment data in Firestore and block time slot if available
-  Future<void> setApptData() async {
+  // Set appointment data in Firestore and allow appending duplicate values to fields
+  Future<void> addNewApptData() async {
     if (_formKey.currentState?.validate() == true) {
       if (contactInput.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -85,7 +108,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
       if (blockedTimeSlots[selectedTimeSlot] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Selected time slot is blocked, please choose another one.'),
+            content: Text(
+                'Selected time slot is blocked, please choose another one.'),
           ),
         );
         return;
@@ -101,36 +125,75 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
         return;
       }
 
-      // Only block the time slot in Firestore here
       if (selectedTimeSlot != null) {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
 
-      await FirebaseFirestore.instance
-          .collection("Appointments")
-          .doc(contactInput.text.trim())
-          .set({
-        'Patient Name': nameInput.text.trim(),
-        'Phone no.': contactInput.text.trim(),
-        'Selected Date': formattedDate,
-        'Day Part': selectedDayparts.toString(),
-        'Selected Time Slot': selectedTimeSlot,
-        'Schedule Treatment': scheduleTreatmentInput.text.trim(),
-        'Note': noteInput.text.trim(),
-      });
+      // Retrieve existing data from Firestore and handle types properly
+      final userDocumentRef =
+          FirebaseFirestore.instance.collection('Appointments').doc(docID);
+      final snapshot = await userDocumentRef.get();
 
-      // Clear input fields and reset state
+      Map<String, dynamic> existingData = snapshot.data() ?? {};
+
+      // Safely handle existing data and ensure it's a list
+      List<dynamic> ensureList(dynamic field) {
+        if (field == null) {
+          return []; // Initialize as empty list if field is null
+        }
+        if (field is List) {
+          return field; // Field is already a list
+        }
+        return [field]; // Wrap single value in a list
+      }
+
+      // Append new data to existing fields
+      existingData['Selected Date'] = ensureList(existingData['Selected Date'])
+        ..add(formattedDate);
+      existingData['Day Part'] = ensureList(existingData['Day Part'])
+        ..add(selectedDayparts);
+      existingData['Selected Time Slot'] =
+          ensureList(existingData['Selected Time Slot'])..add(selectedTimeSlot);
+      existingData['Schedule Treatment'] =
+          ensureList(existingData['Schedule Treatment'])
+            ..add(scheduleTreatmentInput.text.trim());
+      existingData['Note'] = ensureList(existingData['Note'])
+        ..add(noteInput.text.trim());
+      existingData['timestamp'] = ensureList(existingData['timestamp'])
+        ..add(Timestamp.now());
+
+      // Update Firestore with merged data
+      await userDocumentRef.set(existingData, SetOptions(merge: true));
+
+      await twilioService.sendSms(
+        toNumber: contactInput.text.trim(),
+        name: nameInput.text.trim(),
+        date: formattedDate,
+        timeSlot: selectedTimeSlot ?? '',
+        context: context,
+      );
+
+      await twilioService.sendWhatsappMsg(
+        toNumber: contactInput.text.trim(),
+        name: nameInput.text.trim(),
+        date: formattedDate,
+        timeSlot: selectedTimeSlot ?? '',
+        context: context,
+      );
+
+      // Clear input fields
       nameInput.clear();
       contactInput.clear();
       scheduleTreatmentInput.clear();
       noteInput.clear();
       setState(() {
         selectedDayparts = null;
-        selectedTimeSlot = null; // Reset selected time slot
+        selectedTimeSlot = null;
       });
 
+      // Notify user
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Appointment set successfully!')),
+        const SnackBar(content: Text('Appointment added successfully!')),
       );
     }
   }
@@ -166,8 +229,18 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
 
   @override
   void initState() {
-    super.initState();
     fetchBlockedTimeSlots();
+    super.initState();
+    docID = widget.documentID ??
+        FirebaseFirestore.instance.collection('Appointments').doc().id;
+    // Assign the passed documentID to docID
+
+    twilioService = TwilioService(
+      accountSID: dotenv.env['TWILIO_ACCOUNT_SID'] ?? '',
+      authToken: dotenv.env['TWILIO_AUTH_TOKEN'] ?? '',
+      smsTwilioNumber: dotenv.env['TWILIO_PHONE_NUMBER'] ?? '',
+      whatsappTwilioNumber: dotenv.env['TWILIO_WHATSAPP_NUMBER'] ?? '',
+    );
   }
 
   @override
@@ -179,7 +252,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.pop(context); // Change this line to pop the current screen
+            Navigator.pop(
+                context); // Change this line to pop the current screen
           },
         ),
         title: Text(
@@ -202,6 +276,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                   controller: nameInput,
                   requiredInput: 'Name',
                   hideText: false,
+                  isReadOnly: true,
+                  isEnabled: false,
                 ),
                 const SizedBox(height: 20),
                 const LabelsWidget(label: 'Contact'),
@@ -213,6 +289,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                   hideText: false,
                   onlyInt: FilteringTextInputFormatter.digitsOnly,
                   keyBoardType: TextInputType.number,
+                  isReadOnly: true,
+                  isEnabled: false,
                 ),
                 const SizedBox(height: 20),
                 Row(
@@ -220,7 +298,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                     const LabelsWidget(label: 'Date : '),
                     Text(
                       DateFormat.yMMMMd().format(DateTime.now()),
-                      style: AppStyles.headLineStyle3.copyWith(color: AppStyles.primary),
+                      style: AppStyles.headLineStyle3
+                          .copyWith(color: AppStyles.primary),
                     ),
                   ],
                 ),
@@ -228,6 +307,7 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                 GetApptDate(onDateSelected: (date) {
                   setState(() {
                     selectedDate = date;
+                    formattedDate = DateFormat('dd-MM-yyyy').format(date);
                   });
                 }),
                 const SizedBox(height: 10),
@@ -250,6 +330,33 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                 FutureBuilder<List<Widget>>(
                   future: _buildTimeSlots(),
                   builder: (context, snapshot) {
+                    if (selectedDayparts == null) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                // color: Colors.grey.withOpacity(0.3),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
+                            ),
+                          ),
+                          const SizedBox(width: 20),
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                // color: Colors.grey.withOpacity(0.3),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
                         child: CircularProgressIndicator(),
@@ -287,16 +394,21 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    fixedSize: const Size(250, 50),
                     backgroundColor: AppStyles.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15), // Adjust the radius value as needed
+                    ),
                   ),
-                  onPressed: setApptData,
+                  onPressed: addNewApptData,
                   child: Text(
                     'Set Appointment',
                     style: AppStyles.headLineStyle3.copyWith(
                       color: Colors.white,
                     ),
                   ),
-                )
+                ),
+                const SizedBox(height: 20),
               ],
             ),
           ),

@@ -1,0 +1,80 @@
+ Future<void> sendWhatsappMsg() async {
+    try {
+      // Ensure the contact number and name are valid before sending the SMS
+      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+        await whatsappMsgTwilioFlutter.sendWhatsApp(
+          toNumber: contactInput.text.trim(),
+          messageBody:
+              '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
+        );
+
+        // Provide feedback upon successful message delivery
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Whatsapp message sent successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid Whatsapp number or name.')),
+        );
+      }
+    } catch (e) {
+      // Handle errors like unverified number
+      if (e.toString().contains("unverified")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Whatsapp message failed: Number is not verified. Please verify the number in Twilio.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send Whatsapp message: $e')),
+        );
+      }
+    }
+  }
+
+
+
+
+
+
+
+
+ // Send confirmation message after appointment is set
+  Future<void> sendSms() async {
+    try {
+      // Ensure the contact number and name are valid before sending the SMS
+      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
+        print("Twilio Account SID : $accountSID");
+        print("Twilio Phone Number : $twilioPhoneNumber");
+        await SMSTwilioFlutter.sendSMS(
+          toNumber: contactInput.text.trim(),
+          messageBody:
+              '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
+        );
+
+        // Provide feedback upon successful message delivery
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('SMS sent successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid contact number or name.')),
+        );
+      }
+    } catch (e) {
+      // Handle errors like unverified number
+      if (e.toString().contains("unverified")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Message failed: Number is not verified. Please verify the number in Twilio.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send message: $e')),
+        );
+      }
+    }
+  }
+

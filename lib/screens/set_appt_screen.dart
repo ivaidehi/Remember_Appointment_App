@@ -9,11 +9,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
-import 'package:twilio_flutter/twilio_flutter.dart';
 import '../gets/get_time.dart';
 import '../myWidgets/dropdown_widget.dart';
 import '../myWidgets/input_field_widget.dart';
 import '../myWidgets/labels_widget.dart';
+import '../services/twilio_service.dart';
 
 class SetApptScreen extends StatefulWidget {
   const SetApptScreen({super.key});
@@ -23,8 +23,7 @@ class SetApptScreen extends StatefulWidget {
 }
 
 class _SetApptScreenState extends State<SetApptScreen> {
-  late TwilioFlutter SMSTwilioFlutter;
-  late TwilioFlutter whatsappMsgTwilioFlutter;
+  late TwilioService twilioService;
 
   String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   var nameInput = TextEditingController();
@@ -82,19 +81,13 @@ class _SetApptScreenState extends State<SetApptScreen> {
 
   // Set appointment data in Firestore and block time slot if available
   Future<void> setApptData() async {
-    // final getContact = await FirebaseFirestore.instance
-    //     .collection("Appointments")
-    //     .doc(contactInput.text);
-
     if (_formKey.currentState?.validate() == true) {
       if (contactInput.text.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Contact number cannot be empty.')),
         );
         return;
-      }
-
-      else if (selectedDate == null &&
+      } else if (selectedDate == null &&
           selectedDayparts == null &&
           selectedTimeSlot == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -147,12 +140,17 @@ class _SetApptScreenState extends State<SetApptScreen> {
         await permanentlyBlockTimeSlotInFirestore(selectedTimeSlot!);
       }
 
-      // Save appointment to Firestore
-      await FirebaseFirestore.instance
+      String userId = FirebaseAuth.instance.currentUser?.uid ?? 'unknown_user';
+
+      // Check if an appointment with the same contact number and userId already exists
+      QuerySnapshot existingAppointments = await FirebaseFirestore.instance
           .collection("Appointments")
-          .doc(contactInput.text.trim())
-          .set({
-        'userId': FirebaseAuth.instance.currentUser?.uid,
+          .where("userId", isEqualTo: userId)
+          .get();
+
+      // Generate a unique document ID or let Firestore auto-generate it
+      final newAppointment = {
+        'userId': userId,
         'Patient Name': nameInput.text.trim(),
         'Contact No.': contactInput.text.trim(),
         'Selected Date': formattedDate,
@@ -161,10 +159,28 @@ class _SetApptScreenState extends State<SetApptScreen> {
         'Schedule Treatment': scheduleTreatmentInput.text.trim(),
         'Note': noteInput.text.trim(),
         'timestamp': FieldValue.serverTimestamp(),
-      });
+      };
 
-      sendSms();
-      // sendWhatsappMsg();
+      // Add a new document without overwriting existing ones
+      await FirebaseFirestore.instance
+          .collection('Appointments')
+          .add(newAppointment);
+
+      await twilioService.sendSms(
+        toNumber: contactInput.text.trim(),
+        name: nameInput.text.trim(),
+        date: formattedDate,
+        timeSlot: selectedTimeSlot ?? '',
+        context: context,
+      );
+
+      await twilioService.sendWhatsappMsg(
+        toNumber: contactInput.text.trim(),
+        name: nameInput.text.trim(),
+        date: formattedDate,
+        timeSlot: selectedTimeSlot ?? '',
+        context: context,
+      );
 
       // Clear input fields and reset state
       nameInput.clear();
@@ -179,7 +195,6 @@ class _SetApptScreenState extends State<SetApptScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Appointment set successfully!')),
       );
-
     }
   }
 
@@ -212,94 +227,18 @@ class _SetApptScreenState extends State<SetApptScreen> {
     return timeSlotAsPerDayparts;
   }
 
-  String accountSID = dotenv.env['TWILIO_ACCOUNT_SID'] ?? '';
-  String authToken = dotenv.env['TWILIO_AUTH_TOKEN'] ?? '';
-  String twilioPhoneNumber = dotenv.env['TWILIO_PHONE_NUMBER'] ?? '';
-  String twilioWhatsappNumber = dotenv.env['TWILIO_WHATSAPP_NUMBER'] ?? '';
-
-
   @override
   void initState() {
-    SMSTwilioFlutter = TwilioFlutter(
-        accountSid: accountSID,
-        authToken: authToken,
-        twilioNumber: twilioPhoneNumber);
-
-    whatsappMsgTwilioFlutter = TwilioFlutter(
-        accountSid: accountSID,
-        authToken: authToken,
-        twilioNumber: twilioWhatsappNumber);
-
     super.initState();
     fetchBlockedTimeSlots();
+    // Initialize Twilio service
+    twilioService = TwilioService(
+      accountSID: dotenv.env['TWILIO_ACCOUNT_SID'] ?? '',
+      authToken: dotenv.env['TWILIO_AUTH_TOKEN'] ?? '',
+      smsTwilioNumber: dotenv.env['TWILIO_PHONE_NUMBER'] ?? '',
+      whatsappTwilioNumber: dotenv.env['TWILIO_WHATSAPP_NUMBER'] ?? '',
+    );
   }
-
-  // Send confirmation message after appointment is set
-  Future<void> sendSms() async {
-    try {
-      // Ensure the contact number and name are valid before sending the SMS
-      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
-        print("Twilio Account SID : $accountSID");
-        print("Twilio Phone Number : $twilioPhoneNumber");
-        await SMSTwilioFlutter.sendSMS(
-          toNumber: contactInput.text.trim(),
-          messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
-        );
-
-        // Provide feedback upon successful message delivery
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('SMS sent successfully!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid contact number or name.')),
-        );
-      }
-    } catch (e) {
-      // Handle errors like unverified number
-      if (e.toString().contains("unverified")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Message failed: Number is not verified. Please verify the number in Twilio.')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send message: $e')),
-        );
-      }
-    }
-  }
-  Future<void> sendWhatsappMsg() async {
-    try {
-      // Ensure the contact number and name are valid before sending the SMS
-      if (contactInput.text.isNotEmpty && nameInput.text.isNotEmpty) {
-        await whatsappMsgTwilioFlutter.sendWhatsApp(
-          toNumber: contactInput.text.trim(),
-          messageBody: '${nameInput.text}, Your appointment is scheduled successfully on $formattedDate at $selectedTimeSlot. Thank you!',
-        );
-
-        // Provide feedback upon successful message delivery
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Whatsapp message sent successfully!')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid Whatsapp number or name.')),
-        );
-      }
-    } catch (e) {
-      // Handle errors like unverified number
-      if (e.toString().contains("unverified")) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Whatsapp message failed: Number is not verified. Please verify the number in Twilio.')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send Whatsapp message: $e')),
-        );
-      }
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -411,29 +350,27 @@ class _SetApptScreenState extends State<SetApptScreen> {
                     if (selectedDayparts == null) {
                       return Row(
                         children: [
-                          Expanded(child: Container(
-                            height: 40,
-                            width: 180,
-                            decoration: BoxDecoration(
-                              // color: Colors.grey.withOpacity(0.3),
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20)
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                  // color: Colors.grey.withOpacity(0.3),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
                             ),
-                          ),
                           ),
                           const SizedBox(width: 20),
-
-                          Expanded(child: Container(
-                            height: 40,
-                            width: 180,
-                            decoration: BoxDecoration(
-                              // color: Colors.grey.withOpacity(0.3),
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20)
+                          Expanded(
+                            child: Container(
+                              height: 40,
+                              width: 180,
+                              decoration: BoxDecoration(
+                                  // color: Colors.grey.withOpacity(0.3),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20)),
                             ),
                           ),
-                          ),
-
                         ],
                       );
                     }
@@ -474,7 +411,11 @@ class _SetApptScreenState extends State<SetApptScreen> {
                 const SizedBox(height: 30),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
+                    fixedSize: const Size(250, 50),
                     backgroundColor: AppStyles.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15), // Adjust the radius value as needed
+                    ),
                   ),
                   onPressed: setApptData,
                   child: Text(
@@ -483,7 +424,8 @@ class _SetApptScreenState extends State<SetApptScreen> {
                       color: Colors.white,
                     ),
                   ),
-                )
+                ),
+                const SizedBox(height: 30),
               ],
             ),
           ),
