@@ -81,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(35),
-            margin: const EdgeInsets.symmetric(vertical: 70),
+            margin: const EdgeInsets.symmetric(vertical: 20),
             child: Form(
               key: _formkey,
               child: Column(
@@ -155,10 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   SizedBox(
                     width: 200,
                     child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            WidgetStateProperty.all<Color>(Colors.blue),
-                      ),
+                      style: AppStyles.buttonStyle,
                       onPressed: () {
                         if (_formkey.currentState!.validate()) {
                           setState(() {
@@ -175,6 +172,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Register',
                         style: AppStyles.headLineStyle3.copyWith(
                           color: Colors.white,
+                            fontWeight: FontWeight.bold
                         ),
                       ),
                     ),
@@ -254,7 +252,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             Navigator.pushNamed(context, 'login_screen');
                           },
                           child: Text(
-                            'Already have an Account? LOG IN',
+                            'Already have an Account?   LOG IN',
                             style: TextStyle(
                               color: AppStyles
                                   .secondary, // Change text color for better visibility

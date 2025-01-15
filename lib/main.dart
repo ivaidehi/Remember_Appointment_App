@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
         "addnew_appt_screen": (context) => AddnewApptScreen(),
         "login_screen": (context) => const LoginScreen(),
         "register_screen": (context) => const RegisterScreen(),
-        "forget_password": (context) => ForgotPasswordScreen(),
+        "forget_password": (context) => const ForgotPasswordScreen(),
       },
     );
   }

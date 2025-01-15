@@ -16,6 +16,13 @@ class AppStyles {
       const TextStyle(fontSize: 20, fontWeight: FontWeight.w600);
   static TextStyle headLineStyle4 = const TextStyle(fontSize: 15);
 
+  static ButtonStyle buttonStyle = ElevatedButton.styleFrom(
+      backgroundColor: AppStyles.primary,
+      //padding: EdgeInsets.symmetric(vertical: 15),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ));
+
   static BoxDecoration inputBoxShadowStyle = BoxDecoration(
     // color: Colors.white,
     borderRadius: BorderRadius.circular(5),
@@ -61,5 +68,4 @@ class AppStyles {
   //   ],
   //   borderRadius: BorderRadius.circular(8),
   // );
-
 }

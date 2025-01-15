@@ -26,24 +26,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> login() async {
     try {
-      await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: useremail.trim(), password: password);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: useremail,
+        password: password,
+      );
+
+      // Successful login
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Login Successfully.')),
       );
       Navigator.pushNamed(context, 'bottom_navbar');
     } on FirebaseAuthException catch (e) {
-      if (e.code == userNotFound) {
-        setState(() {
-          _emailWarning = 'Invalid Email id';
-        });
-      } else if (e.code == wrongPassword) {
-        setState(() {
-          _passwordWarning = 'Invalid Password';
-        });
-      }
+      setState(() {
+        // Update showWarning based on the error code
+        if (e.code != 'user-not-found') {
+          // Default error handling
+          _passwordWarning = null;
+          _emailWarning = 'Invalid Email, please try again';
+        }
+
+        if (e.code != 'wrong-password') {
+          // Default error handling
+          _emailWarning = null;
+          _passwordWarning = 'Invalid Password, please try again';
+        }
+
+        if (e.code != 'user-not-found' && e.code != 'wrong-password') {
+          // Default error handling
+          _emailWarning = 'Invalid Email, please try again';
+          _passwordWarning = 'Invalid Password, please try again';
+        }
+      });
+
+      // Re-validate the form to show the error messages
+      _formkey.currentState?.validate();
     }
   }
+
+
 
   bool _visibility = false;
 
@@ -105,17 +125,26 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(
                     height: 20,
                   ),
+                  Container(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(context, 'forget_password');
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: AppStyles.headLineStyle3.copyWith(color: AppStyles.secondary)
+                      ),
+                    ),
+                  ),
                   const SizedBox(
                     height: 30,
                   ),
                   SizedBox(
                     width: 200,
-                    height: 55,
+                    // height: 45,
                     child: ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor:
-                            WidgetStateProperty.all<Color>(Colors.blue),
-                      ),
+                      style: AppStyles.buttonStyle,
                       onPressed: () {
                         if (_formkey.currentState!.validate()) {
                           setState(() {
@@ -131,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Login',
                         style: AppStyles.headLineStyle3.copyWith(
                           color: Colors.white,
+                          fontWeight: FontWeight.bold
                         ),
                       ),
                     ),
@@ -201,9 +231,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           )
                         ],
                       ),
-
                       const SizedBox(
-                        height: 20,
+                        height: 40,
                       ),
                       // Already have an account-->  login
                       Container(
@@ -215,15 +244,32 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: () {
                             Navigator.pushNamed(context, 'register_screen');
                           },
-                          child: Text(
-                            'Don\'t have an Account? Register',
-                            style: TextStyle(
-                              color: AppStyles
-                                  .secondary, // Change text color for better visibility
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Don\'t have an Account?',
+                                style: TextStyle(
+                                  color: AppStyles
+                                      .secondary, // Change text color for better visibility
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 15,
+                              ),
+                              Text(
+                                'Register',
+                                style: AppStyles.headLineStyle4.copyWith(
+                                  color: AppStyles.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline, // Adds underline to the text
+                                ),
+                              ),
+
+                            ],
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],
@@ -235,3 +281,5 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+
+container({required Alignment alignment, required GestureDetector child}) {}

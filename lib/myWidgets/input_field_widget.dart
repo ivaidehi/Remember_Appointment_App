@@ -67,18 +67,27 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
         TextFormField(
           focusNode: _focusNode,
           validator: (value) {
-            if (value == null || value.isEmpty) {
-              setState(() {
-                widget.showWarning =
-                'Please enter a valid ${widget.requiredInput}';
-              });
-              return widget.showWarning;
+            // Check if an explicit warning is set
+            if (widget.showWarning != null && widget.showWarning!.isNotEmpty) {
+              return widget.showWarning; // Display error message
             }
-            setState(() {
-              widget.showWarning = null; // Reset the warning if valid
-            });
+
+            // Check if the field is empty
+            if (value == null || value.isEmpty) {
+              return 'Please enter a valid ${widget.requiredInput}';
+            }
+
+            // If no errors, reset the warning
             return null;
           },
+          onChanged: (value) {
+            // Reset the error when the user starts typing
+            setState(() {
+              widget.showWarning = null;
+            });
+          },
+
+
           obscureText: widget.hideText,
           controller: widget.controller,
           cursorColor: AppStyles.secondary,

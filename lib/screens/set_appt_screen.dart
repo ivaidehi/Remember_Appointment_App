@@ -9,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import '../gets/get_time.dart';
 import '../myWidgets/dropdown_widget.dart';
 import '../myWidgets/input_field_widget.dart';
@@ -166,21 +167,21 @@ class _SetApptScreenState extends State<SetApptScreen> {
           .collection('Appointments')
           .add(newAppointment);
 
-      await twilioService.sendSms(
-        toNumber: contactInput.text.trim(),
-        name: nameInput.text.trim(),
-        date: formattedDate,
-        timeSlot: selectedTimeSlot ?? '',
-        context: context,
-      );
+      // await twilioService.sendSms(
+      //   toNumber: contactInput.text.trim(),
+      //   name: nameInput.text.trim(),
+      //   date: formattedDate,
+      //   timeSlot: selectedTimeSlot ?? '',
+      //   context: context,
+      // );
 
-      await twilioService.sendWhatsappMsg(
-        toNumber: contactInput.text.trim(),
-        name: nameInput.text.trim(),
-        date: formattedDate,
-        timeSlot: selectedTimeSlot ?? '',
-        context: context,
-      );
+      // await twilioService.sendWhatsappMsg(
+      //   toNumber: contactInput.text.trim(),
+      //   name: nameInput.text.trim(),
+      //   date: formattedDate,
+      //   timeSlot: selectedTimeSlot ?? '',
+      //   context: context,
+      // );
 
       // Clear input fields and reset state
       nameInput.clear();
@@ -309,6 +310,33 @@ class _SetApptScreenState extends State<SetApptScreen> {
                   // onlyInt: FilteringTextInputFormatter.digitsOnly,
                   // keyBoardType: TextInputType.number,
                 ),
+                // Container(
+                //   decoration: BoxDecoration(
+                //     color: Colors.white, // Matches other fields
+                //     borderRadius: BorderRadius.circular(12), // Rounded corners
+                //     boxShadow: [
+                //       BoxShadow(
+                //         color: Colors.grey.withOpacity(0.2), // Soft shadow
+                //         blurRadius: 6,
+                //         offset: const Offset(0, 3),
+                //       ),
+                //     ],
+                //   ),
+                //   child: IntlPhoneField(
+                //     decoration: InputDecoration(
+                //       hintText: 'Phone Number',
+                //       hintStyle: const TextStyle(color: Colors.grey),
+                //       contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
+                //       // border: InputBorder.none, // No border
+                //     ),
+                //     initialCountryCode: 'IN',
+                //     showCursor: true,
+                //     onChanged: (phone) {
+                //       contactInput.text = phone.completeNumber; // Update the controller
+                //       print(phone.completeNumber);
+                //     },
+                //   ),
+                // ),
                 const SizedBox(height: 20),
                 Row(
                   children: [

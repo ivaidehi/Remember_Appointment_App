@@ -47,6 +47,7 @@ dependencies:
   api_service_helper: ^0.1.2
   twilio_flutter: ^0.9.0
   flutter_dotenv: ^5.1.0
+  intl_phone_field: ^3.2.0
 
 
 dev_dependencies:
