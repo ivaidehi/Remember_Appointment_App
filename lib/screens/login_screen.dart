@@ -19,10 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
   String useremail = "", password = "";
   final _formkey = GlobalKey<FormState>();
 
-  var userNotFound = 'user-not-found';
-  var wrongPassword = 'wrong-password';
 
   String? _emailWarning, _passwordWarning;
+
+  int failedAttempts = 0;
 
   Future<void> login() async {
     try {
@@ -38,24 +38,46 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushNamed(context, 'bottom_navbar');
     } on FirebaseAuthException catch (e) {
       setState(() {
-        // Update showWarning based on the error code
         if (e.code != 'user-not-found') {
-          // Default error handling
-          _passwordWarning = null;
-          _emailWarning = 'Invalid Email, please try again';
+          _emailWarning = 'Email not found, please try again';
+          _passwordWarning = null; // Clear password warning
         }
-
         if (e.code != 'wrong-password') {
-          // Default error handling
-          _emailWarning = null;
-          _passwordWarning = 'Invalid Password, please try again';
+          _emailWarning = null; // Clear email warning
+          _passwordWarning = 'Incorrect password, please try again';
+        }
+        if (e.message == 'We have blocked all requests from this device due to unusual activity. Try again later.') {
+          // Display a message when the device is blocked
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Unable to proceed. Too many failed attempts. Try after 15 Minutes.'),
+            ),
+          );
+          return;
         }
 
-        if (e.code != 'user-not-found' && e.code != 'wrong-password') {
-          // Default error handling
-          _emailWarning = 'Invalid Email, please try again';
-          _passwordWarning = 'Invalid Password, please try again';
+        // Increment failed attempts for other types of errors
+        failedAttempts++;
+
+        if (failedAttempts >= 5) {
+          // Display the message for too many failed attempts
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Too many failed attempts. Try again later.'),
+            ),
+          );
+          return;
         }
+
+        // _emailWarning = 'Email not found, please try again';
+        // _passwordWarning = null;
+
+        // Display a generic error message for other errors
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("User dosen't exists.' ${e.message}" ?? 'An error occurred. Please try again.'),
+          ),
+        );
       });
 
       // Re-validate the form to show the error messages
@@ -148,8 +170,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         if (_formkey.currentState!.validate()) {
                           setState(() {
-                            useremail = useremailcontroller.text;
-                            password = passwordController.text;
+                            useremail = useremailcontroller.text.trim();
+                            password = passwordController.text.trim();
                           });
                           login();
                         } else {

@@ -1,5 +1,6 @@
+import 'dart:async';
+
 import 'package:appointment_app/data/timeslots_list.dart';
-import 'package:appointment_app/gets/get_date.dart';
 import 'package:appointment_app/styles/app_styles.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/intl.dart';
 import '../gets/get_time.dart';
+import '../myWidgets/calendar_widget.dart';
 import '../myWidgets/dropdown_widget.dart';
 import '../myWidgets/input_field_widget.dart';
 import '../myWidgets/labels_widget.dart';
@@ -23,12 +25,12 @@ class AddnewApptScreen extends StatefulWidget {
 
 class _AddnewApptScreenState extends State<AddnewApptScreen> {
   late TwilioService twilioService;
-
   late String docID;
 
   String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
   var nameInput = TextEditingController();
   var contactInput = TextEditingController();
+  var dateController = TextEditingController();
   var scheduleTreatmentInput = TextEditingController();
   var noteInput = TextEditingController();
 
@@ -165,21 +167,8 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
       // Update Firestore with merged data
       await userDocumentRef.set(existingData, SetOptions(merge: true));
 
-      await twilioService.sendSms(
-        toNumber: contactInput.text.trim(),
-        name: nameInput.text.trim(),
-        date: formattedDate,
-        timeSlot: selectedTimeSlot ?? '',
-        context: context,
-      );
-
-      await twilioService.sendWhatsappMsg(
-        toNumber: contactInput.text.trim(),
-        name: nameInput.text.trim(),
-        date: formattedDate,
-        timeSlot: selectedTimeSlot ?? '',
-        context: context,
-      );
+      await sendWhatsAppMessage(contactInput.text.trim(), nameInput.text.trim(), formattedDate, selectedTimeSlot ?? '');
+      scheduleReminderMessage(contactInput.text.trim(), nameInput.text.trim(), formattedDate, selectedTimeSlot ?? '');
 
       // Clear input fields
       nameInput.clear();
@@ -195,6 +184,35 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Appointment added successfully!')),
       );
+    }
+  }
+  Future<void> sendWhatsAppMessage(String phone, String name, String date, String time) async {
+    await twilioService.sendWhatsappMsg(
+      toNumber: phone,
+      name: name,
+      date: date,
+      timeSlot: time,
+      context: context, whatsappMsg: '$name, Your appointment is scheduled successfully on $date at $time. Thank you!',
+    );
+  }
+
+  void scheduleReminderMessage(String phone, String name, String date, String time) {
+    List<String> timeParts = time.split(' – ');
+    String startTime = timeParts[0];
+    DateTime selectedDateTime = DateFormat('dd-MM-yyyy h:mm a').parse('$date $startTime');
+    DateTime reminderTime = selectedDateTime.subtract(const Duration(hours: 24));
+
+    if (reminderTime.isAfter(DateTime.now())) {
+      Timer(reminderTime.difference(DateTime.now()), () async {
+        await twilioService.sendWhatsappMsg(
+          toNumber: phone,
+          name: name,
+          date: date,
+          timeSlot: time,
+          context: null, // No Snackbar for scheduled messages
+          whatsappMsg: 'Reminder: $name, Your appointment is scheduled tomorrow on $date at $time. Do you want to confirm / cancel ?',
+        );
+      });
     }
   }
 
@@ -227,14 +245,17 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
     return timeSlotAsPerDayparts;
   }
 
+
   @override
   void initState() {
     fetchBlockedTimeSlots();
     super.initState();
+     
+    // Assign the passed documentID to docID
     docID = widget.documentID ??
         FirebaseFirestore.instance.collection('Appointments').doc().id;
-    // Assign the passed documentID to docID
 
+    // Initialize Twilio service
     twilioService = TwilioService(
       accountSID: dotenv.env['TWILIO_ACCOUNT_SID'] ?? '',
       authToken: dotenv.env['TWILIO_AUTH_TOKEN'] ?? '',
@@ -248,7 +269,7 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
     return Scaffold(
       backgroundColor: AppStyles.bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor:AppStyles.bgColor,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -258,7 +279,7 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
         ),
         title: Text(
           'Add New Appointment',
-          style: TextStyle(color: AppStyles.primary).copyWith(fontSize: 18),
+          style: TextStyle(color: AppStyles.primary).copyWith(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
       body: Container(
@@ -293,24 +314,20 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                   isEnabled: false,
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const LabelsWidget(label: 'Date : '),
-                    Text(
-                      DateFormat.yMMMMd().format(DateTime.now()),
-                      style: AppStyles.headLineStyle3
-                          .copyWith(color: AppStyles.primary),
-                    ),
-                  ],
+                const LabelsWidget(label: 'Select Date'),
+                const SizedBox(height: 10),
+                CalendarWidget(
+                  dateController: dateController,
+                  selectedDate: selectedDate,
+                  onDateSelected: (pickedDate) {
+                    setState(() {
+                      selectedDate = pickedDate;
+                      dateController.text = DateFormat.yMMMMd().format(pickedDate!); // Update text controller
+                      formattedDate = DateFormat('dd-MM-yyyy').format(pickedDate);
+                    });
+                  },
                 ),
                 const SizedBox(height: 20),
-                GetApptDate(onDateSelected: (date) {
-                  setState(() {
-                    selectedDate = date;
-                    formattedDate = DateFormat('dd-MM-yyyy').format(date);
-                  });
-                }),
-                const SizedBox(height: 10),
                 const LabelsWidget(label: 'Day Part'),
                 const SizedBox(height: 10),
                 DropdownWidget(
@@ -402,7 +419,7 @@ class _AddnewApptScreenState extends State<AddnewApptScreen> {
                   ),
                   onPressed: addNewApptData,
                   child: Text(
-                    'Set Appointment',
+                    'Add Appointment',
                     style: AppStyles.headLineStyle3.copyWith(
                       color: Colors.white,
                     ),

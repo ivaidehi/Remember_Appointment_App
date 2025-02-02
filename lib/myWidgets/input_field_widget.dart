@@ -14,6 +14,8 @@ class InputFieldWidget extends StatefulWidget {
   final bool isReadOnly;
   final bool isEnabled;
 
+  final Widget? preffixIcon;
+
   InputFieldWidget({
     super.key,
     required this.defaultHintText,
@@ -21,11 +23,13 @@ class InputFieldWidget extends StatefulWidget {
     required this.requiredInput,
     this.hideText = false,
     this.suffixIcon,
+    this.preffixIcon,
     this.showWarning,
     this.onlyInt,
     this.keyBoardType,
     this.isReadOnly = false,
-    this.isEnabled = true,
+    this.isEnabled = true, required ,
+
   });
 
   @override
@@ -121,6 +125,7 @@ class _InputFieldWidgetState extends State<InputFieldWidget> {
                 ? Colors.grey.shade100 // Color when focused
                 : Colors.white, // Default color
             suffixIcon: widget.suffixIcon,
+            prefixIcon: widget.preffixIcon,
           ),
           inputFormatters: widget.onlyInt != null ? [widget.onlyInt!] : [],
           keyboardType: widget.keyBoardType,

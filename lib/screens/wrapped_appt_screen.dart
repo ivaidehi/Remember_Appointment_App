@@ -3,6 +3,7 @@ import 'package:appointment_app/myViews/wrapped_appt_view.dart';
 import 'package:appointment_app/myWidgets/sub_heading_widget.dart';
 import 'package:appointment_app/screens/addnew_appt_screen.dart';
 import 'package:appointment_app/styles/app_styles.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../gets/current_patient_appt_details.dart';
 
@@ -16,6 +17,7 @@ class WrappedApptScreen extends StatefulWidget {
 class _WrappedApptScreenState extends State<WrappedApptScreen> {
   late int wrappedApptIndex = 0;
   late Map<String, dynamic> wrappedApptData = {};
+  List<Map<String, dynamic>> previousAppointments = [];
 
   @override
   void didChangeDependencies() {
@@ -26,9 +28,47 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
       wrappedApptIndex = args["TappedCardIndex"] ?? 0;
       wrappedApptData = args["appointmentData"] ?? {};
       wrappedApptData['documentID'] = args['documentID'] ?? 'No ID Available';
+
+      _fetchPreviousAppointments(args["documentID"]);
     }
     super.didChangeDependencies();
   }
+
+  // Fetch previous appointments from Firebase
+  void _fetchPreviousAppointments(String documentID) async {
+    if (documentID.isEmpty) return;
+
+    try {
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection("Appointments")
+          .doc(documentID)
+          .get();
+
+      if (docSnapshot.exists) {
+        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
+        List<dynamic> treatments = data["Schedule Treatment"] ?? [];
+        List<dynamic> notes = data["Note"] ?? [];
+        List<dynamic> dates = data["Selected Date"] ?? [];
+
+        List<Map<String, dynamic>> extractedAppointments = [];
+
+        for (int i = 0; i < treatments.length - 1; i++) {
+          extractedAppointments.add({
+            "date": dates.length > i ? dates[i] : "N/A",
+            "treatment": treatments.length > i ? treatments[i] : "N/A",
+            "note": notes.length > i ? notes[i] : "N/A",
+          });
+        }
+
+        setState(() {
+          previousAppointments = extractedAppointments;
+        });
+      }
+    } catch (e) {
+      debugPrint("Error fetching previous appointments: $e");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +112,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
                     settings: RouteSettings(
                       arguments: {
                         'name': wrappedApptData['Patient Name'] ?? '',
-                        'contact': wrappedApptData['Contact No.'] ?? '',
+                        'contact': wrappedApptData['Contact No'] ?? '',
                         'documentID': documentID, // Pass the documentID here
                       },
                     ),
@@ -92,7 +132,7 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
             padding: const EdgeInsets.all(15),
             decoration: AppStyles.inputBoxShadowStyle.copyWith(color: Colors.white),
             child: CurrentPatientApptDetails(
-              contact: _getStringFromMap(wrappedApptData, 'Contact No.') ?? 'N/A',
+              contact: _getStringFromMap(wrappedApptData, 'Contact No') ?? 'N/A',
               scheduleTreatment: _getStringFromMap(wrappedApptData, 'Schedule Treatment') ?? 'N/A',
               note: _getStringFromMap(wrappedApptData, 'Note') ?? 'N/A',
             ),
@@ -102,18 +142,26 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
           const SizedBox(height: 25),
           const SubHeadingWidget(subHeading: "Previous Appointment Details"),
           const SizedBox(height: 25),
-          Container(
-            padding: const EdgeInsets.all(15),
-            decoration: AppStyles.inputBoxShadowStyle
-                .copyWith(color: Colors.white),
-            child: const PreviousPatientApptDetails(
-              previous_appt_date: "01-07-2024",
-              schedule_treatment:
-              "Physical Therapy Session - Lower Back Pain and Muscle Pain",
-              note:
-              "Daily Yoga, Exercise and Patient needs to follow up in two weeks.",
+          if (previousAppointments.isEmpty)
+            Center(
+              child: Text(
+                "No previous appointments available",
+                style: AppStyles.headLineStyle2_0.copyWith(color: AppStyles.secondary),
+              ),
+            )
+          else
+            ...previousAppointments.map(
+                  (appt) => Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                padding: const EdgeInsets.all(15),
+                decoration: AppStyles.inputBoxShadowStyle.copyWith(color: Colors.white),
+                child: PreviousPatientApptDetails(
+                  previousApptDate: appt['date'] ?? 'N/A',
+                  scheduleTreatment: appt['treatment'] ?? 'N/A',
+                  note: appt['note'] ?? 'N/A',
+                ),
+              ),
             ),
-          ),
           const SizedBox(height: 20),
         ],
       ),
@@ -122,10 +170,10 @@ class _WrappedApptScreenState extends State<WrappedApptScreen> {
 }
 String? _getStringFromMap(Map<String, dynamic> map, String key) {
   var value = map[key];
-  if (value is String) {
-    return value;
-  } else if (value != null) {
-    return value.toString();  // Ensure non-string values are cast to strings
+  if (value is List) {
+    return value.isNotEmpty ? value.join(", ") : "N/A";
+  } else if (value is String) {
+    return value.isNotEmpty ? value : "N/A";
   }
-  return null;  // If the value is null or not found
+  return "N/A";
 }

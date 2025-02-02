@@ -21,34 +21,43 @@ class _GetApptDateState extends State<GetApptDate> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
         Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(5),
-          ),
-          child: DatePicker(
-            DateTime.now(),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
             height: 100,
-            width: 80,
-            initialSelectedDate: DateTime.now(),
-            selectionColor: AppStyles.primary,
-            selectedTextColor: Colors.white,
-            dateTextStyle: AppStyles.headLineStyle3,
-            onDateChange: (date) {
-              // Compare only the date parts
-              if (date.isBefore(DateTime(_todayDate.year, _todayDate.month, _todayDate.day)) ||
-                  date.isAfter(_maxDate)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Please select a date within the next 5 days.')),
-                );
-              } else {
-                widget.onDateSelected!(date);
-              }
-            },
-          ),
+            decoration: AppStyles.inputBoxShadowStyle
+        ),
+        Column(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: DatePicker(
+                DateTime.now(),
+                height: 100,
+                width: 80,
+                initialSelectedDate: DateTime.now(),
+                selectionColor: AppStyles.primary,
+                selectedTextColor: Colors.white,
+                dateTextStyle: AppStyles.headLineStyle3,
+                onDateChange: (date) {
+                  // Compare only the date parts
+                  if (date.isBefore(DateTime(_todayDate.year, _todayDate.month, _todayDate.day)) ||
+                      date.isAfter(_maxDate)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Please select a date within the next 5 days.')),
+                    );
+                  } else {
+                    widget.onDateSelected!(date);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ],
     );

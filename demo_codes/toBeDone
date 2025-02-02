@@ -1,0 +1,8 @@
+1. --- DONE --- Change SetApptScreen code with reference of the AddNewApptScreen \
+
+2.  --- DONE --- Time Slots changes made in SetApptScreen are not reflecting in the Time Slots of AddNewApptScreen
+3. --- DONE --- Dates Are not appending, In the SelectedDate Field Array/List
+4. Add Msg feature in AddNewApptScreen Also
+
+
+

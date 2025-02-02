@@ -159,10 +159,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () {
                         if (_formkey.currentState!.validate()) {
                           setState(() {
-                            fname = fnameController.text;
-                            lname = lnameController.text;
-                            email = emailController.text;
-                            setPassword = setPasswordController.text;
+                            fname = fnameController.text.trim();
+                            lname = lnameController.text.trim();
+                            email = emailController.text.trim();
+                            setPassword = setPasswordController.text.trim();
                             // phoneNo = phonenoController.text;
                           });
                         }
